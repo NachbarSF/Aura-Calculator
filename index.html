@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aura-Rechner</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--text:#1f1e1b;--muted:#6b6a64;--line:#dcdad2;--accent:#185fa5;--hl:#e6f1fb;--warn:#a32d2d;--field:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1b19;--card:#262624;--text:#ecebe6;--muted:#a3a29b;--line:#3d3d3a;--accent:#85b7eb;--hl:#0c447c;--warn:#f09595;--field:#1f1f1d}}
+*{box-sizing:border-box}
+html{font-size:calc(16px*var(--fs,1))}
+body{margin:0;background:var(--bg);color:var(--text);font:.9375rem/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-width:68rem}
+main{width:68rem;margin:0 auto;padding:20px 16px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tools{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.tg{display:flex;align-items:center;gap:6px;font-size:.8125rem;color:var(--muted)}
+.tg button{height:2rem;min-width:2rem;padding:0 8px;font-size:.875rem}
+.tg .pc{min-width:3.6rem}
+h1{font-size:1.375rem;font-weight:500;margin:0 0 4px}
+h2{font-size:1rem;font-weight:500;margin:0 0 10px}
+.sub,.muted{color:var(--muted)}
+.small{font-size:.8125rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:12px}
+.grid3>*{min-width:0}
+label{display:block;font-size:.8125rem;color:var(--muted)}
+input,button{font:inherit;color:var(--text)}
+input{min-width:0;width:100%;height:2.25rem;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);margin-top:4px}
+input[type=radio]{width:auto;height:auto;margin:0 6px 0 0}
+.opt{display:flex;align-items:center;color:var(--text);font-size:.9375rem;cursor:pointer}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:0}
+textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);font:inherit;margin:8px 0}
+button{height:2.25rem;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:transparent;cursor:pointer}
+button:hover{border-color:var(--accent)}
+.row{display:flex;gap:8px;align-items:center}
+.row input{margin-top:4px}
+.row button{margin-top:4px}
+.presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.pbtn{height:auto;text-align:left;padding:8px 12px;background:var(--card)}
+.pbtn.on{border:2px solid var(--accent);padding:7px 11px;background:var(--hl)}
+.pbtn b{display:block;font-weight:500}
+.pbtn span{display:block;font-size:.75rem;color:var(--muted)}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.metrics>*{min-width:0}
+.metric{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.metric .l{font-size:.8125rem;color:var(--muted)}
+.metric .v{font-size:1.375rem;font-weight:500;overflow-wrap:anywhere}
+.metric .s{font-size:.8125rem;color:var(--muted)}
+.warn{color:var(--warn)}
+.evrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.evrow input{width:9.5rem;margin-top:0}
+.evrow button{margin-top:0}
+.evinfo{font-size:.8125rem;color:var(--muted);min-width:4.5rem}
+.fi{font-size:.8125rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+th{font-weight:500;color:var(--muted);text-align:left;padding:5px 8px 5px 0;font-size:.8125rem}
+td{padding:6px 8px 6px 0;border-top:1px solid var(--line)}
+tr.hl td{background:var(--hl)}
+tr.hl td:first-child{padding-left:8px}
+tr.ms{cursor:pointer}
+tr.ms td:first-child{font-weight:500}
+tr.sub td{color:var(--muted);font-size:.8125rem;border-top:1px dashed var(--line)}
+tr.sub td:first-child{padding-left:1.4rem}
+tr.hide{display:none}
+.tw{overflow-x:auto}
+details summary{cursor:pointer;color:var(--muted);font-size:.875rem}
+details summary.evsum{color:var(--text);font-size:1rem;font-weight:500}
+p{margin:6px 0}
+.dbody{margin-top:10px}
+button,th,td,summary,.metric,.evinfo,.tg,.opt,.pbtn span,h1,h2,.tools,label{white-space:nowrap}
+label:not(.opt)>input{display:block}
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+  <h1>Aura-Rechner</h1>
+  <div class="tools">
+    <div class="tg"><span>Schrift</span><button id="fm" type="button" aria-label="Schrift verkleinern">−</button><button id="fr" type="button" class="pc" aria-label="Schriftgröße zurücksetzen">100 %</button><button id="fp" type="button" aria-label="Schrift vergrößern">+</button></div>
+  </div>
+</header>
+<p class="sub">Mana-Bedarf und Enddatum bis Aura 400. Alles wird in diesem Browser gespeichert.</p>
+
+<section class="card">
+  <h2>Dein Stand</h2>
+  <div class="grid3">
+    <label>Start-Aura<input id="sa" type="number" min="1" max="399" step="1"></label>
+    <label>Mana in dieser Aura schon da<input id="mn" type="number" min="0" step="1"></label>
+    <label>Stand vom (dieser Tag zählt mit)<span class="row"><input id="sd" type="date"><button id="today" type="button">Heute</button></span></label>
+  </div>
+  <p id="err" class="warn small"></p>
+  <p id="hint" class="muted small"></p>
+</section>
+
+<details class="card" data-k="mana" open>
+  <summary class="evsum">Mana pro Tag</summary>
+  <div class="dbody">
+    <p class="muted small">Nichts ausgewählt rechnet immer mit einem Epic pro Tag.</p>
+    <p class="muted small">Ein erneuter Klick auf den gewählten Knopf setzt die Standardwerte 50 und 200 zurück.</p>
+    <div class="presets" id="presets"></div>
+    <div class="grid3">
+      <label>Mana an normalen Tagen<input id="nm" type="number" min="0" step="1"></label>
+      <label>Mana an Event-Tagen<input id="em" type="number" min="0" step="1"></label>
+    </div>
+  </div>
+</details>
+
+<section class="metrics">
+  <div class="metric"><div class="l">Mana bis Aura 400</div><div class="v" id="m1">–</div><div class="s" id="m1s"></div></div>
+  <div class="metric"><div class="l">Gelernter Schnitt</div><div class="v" id="m2">–</div><div class="s" id="m2s"></div></div>
+  <div class="metric"><div class="l">Voraussichtlich fertig</div><div class="v" id="m3">–</div><div class="s" id="m3s"></div></div>
+</section>
+<p id="learned" class="muted small"></p>
+<p id="change" class="small"></p>
+
+<details class="card" data-k="avg" open>
+  <summary class="evsum">Schnitt berechnen aus</summary>
+  <div class="dbody">
+    <div class="row" style="gap:20px;margin-bottom:10px">
+      <label class="opt"><input type="radio" name="win" id="w2025" value="2025">Ab 2025</label>
+      <label class="opt"><input type="radio" name="win" id="w2026" value="2026">Nur 2026</label>
+    </div>
+    <div class="tw"><table id="scen"></table></div>
+    <p class="muted small">Die Auswahl bestimmt die Kennzahlen oben und die Zwischenschritte.</p>
+    <p class="muted small">Beide Zeilen rechnen für die bekannten Tage genau und danach mit ihrem eigenen Schnitt.</p>
+  </div>
+</details>
+
+<details class="card" id="evbox" data-k="ev">
+  <summary class="evsum">Events <span id="evcount" class="muted small"></span></summary>
+  <div style="margin-top:10px">
+  <p class="muted small">Auch Einzeltage wie Weihnachten.</p>
+  <div id="events"></div>
+  <div class="row"><button id="add" type="button">Event hinzufügen</button><button id="sort" type="button">Nach Datum sortieren</button></div>
+  <details style="margin-top:10px">
+    <summary>Mehrere Zeiträume auf einmal einfügen</summary>
+    <textarea id="paste" rows="3" placeholder="z. B. (16.10-18.10)(30.10-01.11)"></textarea>
+    <div class="row"><button id="pbtn" type="button">Hinzufügen</button><span id="pmsg" class="muted small"></span></div>
+    <p class="muted small">Ohne Jahr wird das Jahr genommen, das am nächsten an deinem Stand-Datum liegt. Für weiter zurückliegende Zeiträume das Jahr dazuschreiben (02.01.2026-04.01.2026). Einzeltage als 25.12-25.12.</p>
+  </details>
+  <p class="muted small">Für die eingetragenen Tage rechnet das Programm genau mit den Werten aus „Mana pro Tag“.</p>
+  <p class="muted small">Danach rechnet es mit dem Schnitt.</p>
+  <details>
+    <summary>Ende der Vorschau (normalerweise automatisch)</summary>
+    <div class="grid3" style="margin-top:8px">
+      <label>Events bekannt bis<input id="kt" type="date"></label>
+    </div>
+    <p class="muted small" id="auto"></p>
+    <p class="muted small">Leer lassen = Ende des letzten Events. Mit „bekannt bis“ zählen Tage ohne Event nach deinem letzten Event als normale Tage, zum Beispiel bis zum Ende der Monatsvorschau.</p>
+  </details>
+  </div>
+</details>
+
+<details class="card" data-k="mile" open>
+  <summary class="evsum">Zwischenschritte (mit gewähltem Schnitt)</summary>
+  <div class="dbody"><div class="tw"><table id="mile"></table></div></div>
+</details>
+
+<div id="foot" class="muted small"></div>
+</main>
+
+<script>
+//CORE-START
+const DAY=86400000,PRIOR_SHARE=(91.17-50)/150,TARGET=400,YEAR=365,MAXDAYS=20000;
+const costTo=new Array(TARGET+1).fill(0);
+function stepCost(n){return n<=96?60+20*Math.floor((n-1)/8):300;}
+for(let a=2;a<=TARGET;a++)costTo[a]=costTo[a-1]+stepCost(a-1);
+
+function model(inp){
+  const NORMAL=inp.normal!=null?inp.normal:50,EVENT=inp.event!=null?inp.event:200;
+  const evSet=new Set();
+  for(const e of inp.events){for(let d=e.f;d<=e.t;d++)evSet.add(d);}
+  let minEv=null,maxEv=null;
+  for(const d of evSet){if(minEv===null||d<minEv)minEv=d;if(maxEv===null||d>maxEv)maxEv=d;}
+  const obsFrom=inp.obsFrom!=null?inp.obsFrom:minEv;
+  let knownTo=inp.knownTo!=null?inp.knownTo:maxEv;
+  if(maxEv!==null&&(knownTo===null||knownTo<maxEv))knownTo=maxEv;
+  const hasKnown=obsFrom!==null&&knownTo!==null&&knownTo>=obsFrom;
+  let obsDays=0,eventObs=0,obsAvg=null;
+  if(hasKnown){
+    obsDays=knownTo-obsFrom+1;
+    for(const d of evSet)if(d>=obsFrom&&d<=knownTo)eventObs++;
+    obsAvg=(NORMAL*obsDays+(EVENT-NORMAL)*eventObs)/obsDays;
+  }
+  const avg=hasKnown?obsAvg:NORMAL+(EVENT-NORMAL)*PRIOR_SHARE;
+
+  const base=costTo[inp.sa]+inp.mana;
+  const auras=[];
+  for(let a=10;a<=TARGET;a+=10)if(a>inp.sa)auras.push(a);
+  const needs=auras.map(a=>costTo[a]-base);
+
+  function simulate(rate,list){
+    const res=new Array(list.length).fill(null);
+    let cum=0,k=0;
+    while(k<list.length&&list[k]<=0){res[k]=-1;k++;}
+    for(let i=0;k<list.length&&i<MAXDAYS;i++){
+      const d=inp.sd+i;
+      let m;
+      if(evSet.has(d))m=EVENT;
+      else if(hasKnown&&d>=obsFrom&&d<=knownTo)m=NORMAL;
+      else m=rate;
+      cum+=m;
+      while(k<list.length&&cum>=list[k]-1e-9){res[k]=i;k++;}
+    }
+    return res;
+  }
+
+  const idxs=simulate(avg,needs);
+  const needTotal=needs[needs.length-1];
+  return{
+    avg,obsAvg,obsDays,eventObs,obsFrom,knownTo,hasKnown,needTotal,
+    milestones:auras.map((a,i)=>({aura:a,need:needs[i],idx:idxs[i]})),
+    endIdx:idxs[idxs.length-1],minEv,maxEv
+  };
+}
+function parseRanges(text,ref){
+  const out=[];
+  const re=/(\d{1,2})\.\s*(\d{1,2})\.?\s*(?:(\d{4}))?\s*[-–—]\s*\.?\s*(\d{1,2})\.\s*(\d{1,2})\.?\s*(?:(\d{4}))?/g;
+  const iso=d=>new Date(d*DAY).toISOString().slice(0,10);
+  const ry=new Date(ref*DAY).getUTCFullYear();
+  const pick=(dd,mm,yy)=>{
+    if(yy)return Date.UTC(+yy,mm-1,dd)/DAY;
+    let best=null;
+    for(const y of [ry-1,ry,ry+1]){const d=Date.UTC(y,mm-1,dd)/DAY;if(best===null||Math.abs(d-ref)<Math.abs(best-ref))best=d;}
+    return best;
+  };
+  let m;
+  while((m=re.exec(text))){
+    const d1=+m[1],m1=+m[2],d2=+m[4],m2=+m[5];
+    if(m1<1||m1>12||m2<1||m2>12||d1<1||d1>31||d2<1||d2>31)continue;
+    const f=pick(d1,m1,m[3]);
+    let t;
+    if(m[6])t=Date.UTC(+m[6],m2-1,d2)/DAY;
+    else{
+      const fy=new Date(f*DAY).getUTCFullYear();
+      t=Date.UTC(fy,m2-1,d2)/DAY;
+      if(t<f)t=Date.UTC(fy+1,m2-1,d2)/DAY;
+    }
+    if(t<f||t-f>60)continue;
+    out.push({from:iso(f),to:iso(t)});
+  }
+  return out;
+}
+const SEED_VERSION=4;
+const LEGACY=[["2025-12-31","2026-01-01"],["2026-01-02","2026-01-04"],["2026-02-06","2026-02-08"],["2026-02-20","2026-02-22"],["2026-02-27","2026-03-01"],["2026-03-06","2026-03-08"],["2026-04-03","2026-04-06"],["2026-04-30","2026-05-03"],["2026-05-22","2026-05-25"],["2026-05-29","2026-05-31"],["2026-06-19","2026-06-21"],["2026-07-03","2026-07-05"],["2026-08-07","2026-08-09"],["2026-08-21","2026-08-23"],["2026-08-28","2026-08-30"],["2026-09-04","2026-09-06"],["2026-09-25","2026-09-27"],["2026-10-02","2026-10-04"],["2026-10-16","2026-10-18"],["2026-06-04","2026-06-07"],["2025-01-03","2025-01-05"],["2025-02-07","2025-02-09"],["2025-02-21","2025-02-23"],["2025-02-28","2025-03-02"],["2025-04-04","2025-04-06"],["2025-04-18","2025-04-21"],["2025-05-23","2025-05-25"],["2025-05-29","2025-06-01"],["2025-06-20","2025-06-22"],["2025-07-04","2025-07-06"],["2025-08-01","2025-08-03"],["2025-08-22","2025-08-24"],["2025-08-29","2025-08-31"],["2025-09-05","2025-09-07"],["2025-09-26","2025-09-28"],["2025-10-17","2025-10-20"],["2025-11-07","2025-11-09"],["2025-11-28","2025-11-30"],["2025-12-05","2025-12-07"]];
+const SEED=[["2025-01-10","2025-01-12",4],["2025-01-24","2025-01-26",4],["2025-01-31","2025-02-02",4],["2025-02-21","2025-02-23",4],["2025-02-28","2025-03-02",4],["2025-03-07","2025-03-09",4],["2025-03-28","2025-03-30",4],["2025-04-04","2025-04-06",4],["2025-04-11","2025-04-13",4],["2025-04-25","2025-04-27",4],["2025-05-01","2025-05-04",4],["2025-05-09","2025-05-11",4],["2025-05-29","2025-06-01",4],["2025-06-20","2025-06-22",4],["2025-06-27","2025-06-29",4],["2025-07-11","2025-07-13",4],["2025-07-25","2025-07-27",4],["2025-08-08","2025-08-10",4],["2025-08-29","2025-08-31",4],["2025-09-12","2025-09-14",4],["2025-09-19","2025-09-21",4],["2025-09-26","2025-09-28",4],["2025-10-03","2025-10-05",4],["2025-10-10","2025-10-12",4],["2025-10-17","2025-10-20",4],["2025-10-30","2025-11-02",4],["2025-11-14","2025-11-16",4],["2025-11-28","2025-11-30",4],["2025-12-12","2025-12-14",4],["2025-12-24","2025-12-28",4],["2026-01-09","2026-01-11",4],["2026-01-30","2026-02-01",4],["2026-02-20","2026-02-22",4],["2026-02-27","2026-03-01",4],["2026-03-27","2026-03-29",4],["2026-04-03","2026-04-06",4],["2026-04-10","2026-04-12",4],["2026-04-30","2026-05-03",4],["2026-05-08","2026-05-10",4],["2026-05-22","2026-05-25",4],["2026-05-29","2026-05-31",4],["2026-06-12","2026-06-14",4],["2026-06-19","2026-06-21",4],["2026-06-26","2026-06-28",4],["2026-07-10","2026-07-12",4],["2026-07-31","2026-08-02",4],["2026-08-14","2026-08-16",4],["2026-08-28","2026-08-30",4],["2026-09-11","2026-09-13",4],["2026-09-18","2026-09-20",4],["2026-09-25","2026-09-27",4],["2026-10-02","2026-10-04",4],["2026-10-09","2026-10-11",4],["2026-10-23","2026-10-25",4],["2026-10-30","2026-11-01",4]];
+function applySeed(st){
+  if(st.seedV<4)st.events=st.events.filter(e=>!LEGACY.some(l=>l[0]===e.from&&l[1]===e.to));
+  for(const [f,t,v] of SEED){if(v>st.seedV&&!st.events.some(e=>e.from===f&&e.to===t))st.events.push({from:f,to:t});}
+  st.events.sort((a,b)=>(a.from||'9999').localeCompare(b.from||'9999'));
+  st.seedV=SEED_VERSION;
+}
+//CORE-END
+
+const KEY='auraRechner_v1';
+const $=id=>document.getElementById(id);
+const nf0=new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
+const nf2=new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const ISO=/^\d{4}-\d{2}-\d{2}$/;
+function parseISO(s){const m=ISO.test(s||'')?/^(\d{4})-(\d{2})-(\d{2})$/.exec(s):null;return m?Date.UTC(+m[1],+m[2]-1,+m[3])/DAY:null;}
+function dayToISO(d){return new Date(d*DAY).toISOString().slice(0,10);}
+function fmt(d){return new Date(d*DAY).toLocaleDateString('de-DE',{timeZone:'UTC',weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});}
+function fmtS(d){return new Date(d*DAY).toLocaleDateString('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});}
+function todayDay(){const t=new Date();return Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())/DAY;}
+function isoOrEmpty(s){return ISO.test(s||'')?s:'';}
+
+let state={sa:1,mn:0,nm:50,em:200,sec:{},fsz:100,open:[],sig:'',sd:dayToISO(todayDay()),events:[],kt:'',lastEnd:null,seedV:0,evOpen:false,win:'2025'};
+const WIN_START={'2025':Date.UTC(2025,0,1)/DAY,'2026':Date.UTC(2026,0,1)/DAY};
+let baselineEnd=null;
+try{
+  const raw=localStorage.getItem(KEY);
+  if(raw){
+    const s=JSON.parse(raw);
+    state.sa=Number.isFinite(+s.sa)?+s.sa:1;
+    state.mn=Number.isFinite(+s.mn)?+s.mn:0;
+    state.sd=isoOrEmpty(s.sd)||state.sd;
+    state.kt=isoOrEmpty(s.kt);state.win=s.win==='2026'?'2026':'2025';state.seedV=Number.isFinite(+s.seedV)?+s.seedV:(s.seeded?1:0);state.evOpen=!!s.evOpen;
+    state.nm=(s.nm!==undefined&&s.nm!==''&&Number.isFinite(+s.nm))?+s.nm:50;
+    state.em=(s.em!==undefined&&s.em!==''&&Number.isFinite(+s.em))?+s.em:200;
+    state.sec=(s.sec&&typeof s.sec==='object')?s.sec:{};
+    if(state.sec.ev===undefined&&s.evOpen)state.sec.ev=true;
+    state.fsz=[80,90,100,110,125,150,175,200].includes(+s.fsz)?+s.fsz:100;
+    state.open=Array.isArray(s.open)?s.open.map(Number).filter(Number.isFinite):[];
+    state.sig=typeof s.sig==='string'?s.sig:'';
+    if(Array.isArray(s.events))state.events=s.events.map(e=>({from:isoOrEmpty(e&&e.from),to:isoOrEmpty(e&&e.to)}));
+    if(Number.isFinite(+s.lastEnd)&&s.lastEnd!==null)baselineEnd=+s.lastEnd;
+    state.lastEnd=baselineEnd;
+  }
+}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+if(state.seedV<SEED_VERSION){applySeed(state);baselineEnd=null;state.lastEnd=null;save();}
+
+function evDays(e){
+  const f=parseISO(e.from);if(f===null)return null;
+  const t=e.to?parseISO(e.to):f;
+  if(t===null||t<f)return {bad:true};
+  if(t-f>3650)return {bad:true};
+  return{f,t,n:t-f+1};
+}
+
+function renderEvents(){
+  const box=$('events');box.innerHTML='';
+  state.events.forEach((e,i)=>{
+    const row=document.createElement('div');row.className='evrow';
+    row.innerHTML='<input type="date" class="ef" value="'+e.from+'"><span>bis</span><input type="date" class="et" value="'+e.to+'"><span class="evinfo"></span><button type="button">Entfernen</button>';
+    const ef=row.querySelector('.ef'),et=row.querySelector('.et'),info=row.querySelector('.evinfo');
+    function upd(){
+      const r=evDays(e);
+      if(r===null){info.textContent='Start fehlt';info.className='evinfo';}
+      else if(r.bad){info.textContent='Ende vor Start';info.className='evinfo warn';}
+      else{info.textContent=r.n+(r.n===1?' Tag':' Tage');info.className='evinfo';}
+    }
+    ef.addEventListener('input',()=>{
+      e.from=ef.value;
+      const f=parseISO(e.from),t=parseISO(e.to);
+      if(f!==null&&(t===null||t<f)){e.to=e.from;et.value=e.to;}
+      upd();save();calc();
+    });
+    et.addEventListener('input',()=>{e.to=et.value;upd();save();calc();});
+    row.querySelector('button').addEventListener('click',()=>{state.events.splice(i,1);renderEvents();save();calc();});
+    upd();box.appendChild(row);
+  });
+  if(!state.events.length)box.innerHTML='<p class="muted small">Noch keine Events eingetragen.</p>';
+}
+
+function clearOut(){
+  ['m1','m2','m3'].forEach(i=>{$(i).textContent='–';$(i+'s').textContent='';});
+  $('learned').textContent='';$('change').textContent='';$('scen').innerHTML='';$('mile').innerHTML='';$('foot').innerHTML='';
+}
+
+function calc(){
+  $('err').textContent='';$('hint').textContent='';
+  const sa=Math.floor(+state.sa);
+  if(!(sa>=1&&sa<=TARGET-1)){$('err').textContent='Die Start-Aura muss zwischen 1 und 399 liegen.';clearOut();return;}
+  const mana=Math.max(0,+state.mn||0);
+  const nm=Math.max(0,+state.nm||0),em=Math.max(0,+state.em||0);
+  const sd=parseISO(state.sd);
+  if(sd===null){$('err').textContent='Bitte ein Datum für den Stand wählen.';clearOut();return;}
+  if(mana>=stepCost(sa))$('hint').textContent='Das Mana ist höher als die Kosten dieser Aura ('+nf0.format(stepCost(sa))+'). Stimmt die Start-Aura?';
+  const events=[];
+  for(const e of state.events){const r=evDays(e);if(r&&!r.bad)events.push({f:r.f,t:r.t});}
+  const dayset=new Set();for(const e of events)for(let d=e.f;d<=e.t;d++)dayset.add(d);
+  $('evcount').textContent=events.length?'– '+events.length+' Zeiträume, '+dayset.size+' Event-Tage':'– noch keine eingetragen';
+  const base={sa,mana,sd,events,knownTo:parseISO(state.kt),normal:nm,event:em};
+  const m25=model(Object.assign({obsFrom:WIN_START['2025']},base));
+  const m26=model(Object.assign({obsFrom:WIN_START['2026']},base));
+  const m=state.win==='2026'?m26:m25;
+
+  $('auto').textContent=m.maxEv!==null?'Automatisch: letztes Event endet am '+fmtS(m.maxEv):'Automatisch: noch keine Events';
+
+  $('m1').textContent=nf0.format(Math.max(0,m.needTotal));
+  $('m1s').textContent='ab Aura '+sa+' mit '+nf0.format(mana)+' Mana';
+  $('m2').textContent=nf2.format(m.avg)+' Mana/Tag';
+  $('m2s').textContent=m.hasKnown?'aus '+m.eventObs+' Event-Tagen in '+m.obsDays+' Tagen':'Schätzwert, noch keine Events';
+  const end=m.endIdx;
+  if(end===null){$('m3').textContent='nicht berechenbar';$('m3s').textContent='';}
+  else if(end<0){$('m3').textContent='schon erreicht';$('m3s').textContent='';}
+  else{$('m3').textContent=fmtS(sd+end);$('m3s').textContent=new Date((sd+end)*DAY).toLocaleDateString('de-DE',{timeZone:'UTC',weekday:'long'})+', nach '+nf0.format(end+1)+' Tagen';}
+
+  $('learned').textContent=m.hasKnown
+    ?'Gelernt aus '+m.eventObs+' Event-Tagen in '+m.obsDays+' Tagen ('+fmtS(m.obsFrom)+' bis '+fmtS(m.knownTo)+') = '+nf2.format(m.obsAvg)+' Mana/Tag.'
+    :'Im gewählten Zeitraum stehen keine Events. Es gilt ein Schätzwert von '+nf2.format(m.avg)+' Mana/Tag.';
+  $('foot').innerHTML='<p>Aktuell gelten '+nf0.format(nm)+' Mana an normalen Tagen und '+nf0.format(em)+' Mana an Event-Tagen.</p><p>Der gelernte Schnitt beträgt '+nf2.format(m.avg)+' Mana pro Tag.</p>';
+
+  function endText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?'schon erreicht':fmtS(sd+mm.endIdx));}
+  function durText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?'–':nf0.format(mm.endIdx+1)+' Tage');}
+  function diffText(mm,ref){
+    if(mm===ref||mm.endIdx===null||ref.endIdx===null||mm.endIdx<0||ref.endIdx<0)return '';
+    const d=mm.endIdx-ref.endIdx;
+    return d===0?'gleich':Math.abs(d)+(Math.abs(d)===1?' Tag ':' Tage ')+(d<0?'früher':'später');
+  }
+  let sh='<tr><th>Auswertung</th><th>Zeitraum</th><th>Event-Tage</th><th>Mana/Tag</th><th>Dauer</th><th>Fertig am</th><th>Unterschied</th></tr>';
+  for(const [label,mm] of [['Ab 2025',m25],['Nur 2026',m26]]){
+    const zr=mm.hasKnown?fmtS(mm.obsFrom)+' bis '+fmtS(mm.knownTo):'keine Events';
+    const ev=mm.hasKnown?mm.eventObs+' in '+mm.obsDays+' Tagen':'–';
+    sh+='<tr'+(mm===m?' class="hl"':'')+'><td>'+label+'</td><td>'+zr+'</td><td>'+ev+'</td><td>'+nf2.format(mm.avg)+'</td><td>'+durText(mm)+'</td><td>'+endText(mm)+'</td><td>'+diffText(mm,m)+'</td></tr>';
+  }
+  $('scen').innerHTML=sh;
+
+  const ch=$('change');
+  if(end!==null&&end>=0){
+    const endDay=sd+end;
+    const curSig=[sa,mana,state.sd,nm,em,state.win,state.kt].join('|');
+    if(state.sig!==curSig){baselineEnd=endDay;state.sig=curSig;}
+    if(baselineEnd!==null&&endDay!==baselineEnd){
+      const diff=endDay-baselineEnd;
+      ch.textContent='Seit deinem letzten Besuch: Enddatum '+Math.abs(diff)+(Math.abs(diff)===1?' Tag ':' Tage ')+(diff<0?'früher':'später')+' (vorher '+fmtS(baselineEnd)+').';
+      ch.style.color=diff<0?'var(--accent)':'var(--warn)';
+    }else ch.textContent='';
+    if(baselineEnd===null)baselineEnd=endDay;
+    state.lastEnd=endDay;save();
+  }
+
+  function tageT(n){return n===1?'1 Tag':nf0.format(n)+' Tagen';}
+  function dateCell(idx){return idx===null?'–':(idx<0?'schon erreicht':fmtS(sd+idx)+' (nach '+tageT(idx+1)+')');}
+  let t='<tr><th>Aura</th><th>Mana ab Stand</th><th>Datum</th></tr>';
+  const ms=m.milestones;
+  for(const r of ms){
+    if(r.aura%50!==0)continue;
+    const isOpen=openSet.has(r.aura);
+    t+='<tr class="ms" data-a="'+r.aura+'" tabindex="0" role="button" aria-expanded="'+(isOpen?'true':'false')+'"><td>'+(isOpen?'▾ ':'▸ ')+r.aura+'</td><td>'+nf0.format(Math.max(0,r.need))+'</td><td>'+dateCell(r.idx)+'</td></tr>';
+    for(const s of ms){
+      if(s.aura>r.aura-50&&s.aura<=r.aura)t+='<tr class="sub'+(isOpen?'':' hide')+'" data-p="'+r.aura+'"><td>'+s.aura+'</td><td>'+nf0.format(Math.max(0,s.need))+'</td><td>'+dateCell(s.idx)+'</td></tr>';
+    }
+  }
+  $('mile').innerHTML=t;
+}
+
+$('sa').value=state.sa;$('mn').value=state.mn;$('sd').value=state.sd;$('kt').value=state.kt;$('nm').value=state.nm;$('em').value=state.em;
+$('w2025').checked=state.win!=='2026';$('w2026').checked=state.win==='2026';
+$('w2025').addEventListener('change',()=>{if($('w2025').checked){state.win='2025';save();calc();}});
+$('w2026').addEventListener('change',()=>{if($('w2026').checked){state.win='2026';save();calc();}});
+$('sa').addEventListener('input',()=>{state.sa=$('sa').value;save();calc();});
+$('mn').addEventListener('input',()=>{state.mn=$('mn').value;save();calc();});
+$('sd').addEventListener('input',()=>{state.sd=$('sd').value;save();calc();});
+$('kt').addEventListener('input',()=>{state.kt=$('kt').value;save();calc();});
+$('today').addEventListener('click',()=>{state.sd=dayToISO(todayDay());$('sd').value=state.sd;save();calc();});
+$('add').addEventListener('click',()=>{state.events.push({from:'',to:''});renderEvents();save();const f=document.querySelectorAll('.ef');if(f.length)f[f.length-1].focus();});
+$('sort').addEventListener('click',()=>{state.events.sort((a,b)=>(a.from||'9999').localeCompare(b.from||'9999'));renderEvents();save();});
+$('pbtn').addEventListener('click',()=>{
+  const ref=parseISO(state.sd)||todayDay();
+  const list=parseRanges($('paste').value,ref);
+  let added=0;
+  for(const r of list){if(!state.events.some(e=>e.from===r.from&&e.to===r.to)){state.events.push(r);added++;}}
+  state.events.sort((a,b)=>(a.from||'9999').localeCompare(b.from||'9999'));
+  renderEvents();save();calc();
+  $('pmsg').textContent=list.length?added+' hinzugefügt'+(list.length-added?', '+(list.length-added)+' schon vorhanden':''):'Nichts erkannt. Format: 16.10-18.10';
+  if(list.length)$('paste').value='';
+});
+document.querySelectorAll('details.card[data-k]').forEach(d=>{
+  const k=d.dataset.k;
+  if(state.sec[k]!==undefined)d.open=!!state.sec[k];
+  d.addEventListener('toggle',()=>{state.sec[k]=d.open;save();});
+});
+const FSZ=[80,90,100,110,125,150,175,200];
+const DEF_NM=50,DEF_EM=200;
+const PRESETS=[
+  {n:'Nur Edelsteine',nm:30,em:120,d:'30 Mana normal, 120 pro Event-Tag'},
+  {n:'Edelsteine + Event',nm:30,em:200,d:'30 Mana normal, 200 pro Event-Tag'},
+  {n:'Nur normale Items',nm:25,em:100,d:'25 Mana normal, 100 pro Event-Tag'},
+  {n:'Normale + Epics',nm:25,em:200,d:'25 Mana normal, 200 pro Event-Tag'}
+];
+const openSet=new Set((state.open||[]).map(Number));
+function stepIdx(arr,val,dir){let i=arr.indexOf(val);if(i<0)i=arr.indexOf(100);return Math.max(0,Math.min(arr.length-1,i+dir));}
+function applyView(){
+  document.documentElement.style.setProperty('--fs',state.fsz/100);
+  $('fr').textContent=state.fsz+' %';
+}
+function markPresets(){
+  document.querySelectorAll('#presets .pbtn').forEach(b=>{
+    const p=PRESETS[+b.dataset.i];
+    const on=+state.nm===p.nm&&+state.em===p.em;
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');
+  });
+}
+function renderPresets(){
+  const box=$('presets');box.innerHTML='';
+  PRESETS.forEach((p,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='pbtn';b.dataset.i=i;
+    b.innerHTML='<b>'+p.n+'</b><span>('+p.d+')</span>';
+    b.addEventListener('click',()=>{
+      const on=+state.nm===p.nm&&+state.em===p.em;
+      state.nm=on?DEF_NM:p.nm;state.em=on?DEF_EM:p.em;
+      $('nm').value=state.nm;$('em').value=state.em;markPresets();save();calc();
+    });
+    box.appendChild(b);
+  });
+  markPresets();
+}
+function toggleRow(tr){
+  const a=+tr.dataset.a,o=!openSet.has(a);
+  if(o)openSet.add(a);else openSet.delete(a);
+  document.querySelectorAll('#mile tr.sub').forEach(s=>{if(+s.dataset.p===a)s.classList.toggle('hide',!o);});
+  tr.cells[0].textContent=(o?'▾ ':'▸ ')+a;
+  tr.setAttribute('aria-expanded',o?'true':'false');
+  state.open=[...openSet];save();
+}
+$('mile').addEventListener('click',ev=>{const tr=ev.target.closest?ev.target.closest('tr.ms'):null;if(tr)toggleRow(tr);});
+$('mile').addEventListener('keydown',ev=>{
+  if(ev.key!=='Enter'&&ev.key!==' ')return;
+  const tr=ev.target.closest?ev.target.closest('tr.ms'):null;
+  if(tr){ev.preventDefault();toggleRow(tr);}
+});
+$('nm').addEventListener('input',()=>{state.nm=$('nm').value;markPresets();save();calc();});
+$('em').addEventListener('input',()=>{state.em=$('em').value;markPresets();save();calc();});
+$('fm').addEventListener('click',()=>{state.fsz=FSZ[stepIdx(FSZ,state.fsz,-1)];applyView();save();});
+$('fp').addEventListener('click',()=>{state.fsz=FSZ[stepIdx(FSZ,state.fsz,1)];applyView();save();});
+$('fr').addEventListener('click',()=>{state.fsz=100;applyView();save();});
+renderPresets();applyView();
+renderEvents();calc();
+</script>
+</body>
+</html>
