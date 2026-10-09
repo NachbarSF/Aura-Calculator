@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aura-Rechner</title>
 <style>
-:root{--bg:#f6f5f1;--card:#fff;--text:#1f1e1b;--muted:#6b6a64;--line:#dcdad2;--accent:#185fa5;--hl:#e6f1fb;--warn:#a32d2d;--field:#fff}
-@media (prefers-color-scheme:dark){:root{--bg:#1b1b19;--card:#262624;--text:#ecebe6;--muted:#a3a29b;--line:#3d3d3a;--accent:#85b7eb;--hl:#0c447c;--warn:#f09595;--field:#1f1f1d}}
+:root{color-scheme:light;--bg:#f6f5f1;--card:#fff;--text:#1f1e1b;--muted:#6b6a64;--line:#dcdad2;--accent:#185fa5;--hl:#e6f1fb;--warn:#a32d2d;--field:#fff;--herobg:#e6f1fb;--herolab:#3a5a80;--herotx:#0c3a66;--track:#e9e7df;--g1:#3f9a2a;--g2:#7fd13b}
+:root[data-theme=dark]{color-scheme:dark;--bg:#1b1b19;--card:#262624;--text:#ecebe6;--muted:#a3a29b;--line:#3d3d3a;--accent:#85b7eb;--hl:#0c447c;--warn:#f09595;--field:#1f1f1d;--herobg:#0c2d4d;--herolab:#b9d6f2;--herotx:#fff;--track:#1f1f1d}
+@media (prefers-color-scheme:dark){:root:not([data-theme]){color-scheme:dark;--bg:#1b1b19;--card:#262624;--text:#ecebe6;--muted:#a3a29b;--line:#3d3d3a;--accent:#85b7eb;--hl:#0c447c;--warn:#f09595;--field:#1f1f1d;--herobg:#0c2d4d;--herolab:#b9d6f2;--herotx:#fff;--track:#1f1f1d}}
 *{box-sizing:border-box}
 html{font-size:calc(16px*var(--fs,1))}
 body{margin:0;background:var(--bg);color:var(--text);font:.9375rem/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -41,12 +42,22 @@ button:hover{border-color:var(--accent)}
 .pbtn.on{border:2px solid var(--accent);padding:7px 11px;background:var(--hl)}
 .pbtn b{display:block;font-weight:500}
 .pbtn span{display:block;font-size:.75rem;color:var(--muted)}
-.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.metrics{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px}
 .metrics>*{min-width:0}
 .metric{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .metric .l{font-size:.8125rem;color:var(--muted)}
 .metric .v{font-size:1.375rem;font-weight:500;overflow-wrap:anywhere}
 .metric .s{font-size:.8125rem;color:var(--muted)}
+.hero{background:var(--herobg);border:2px solid var(--accent);padding:12px 7rem 12px 16px;position:relative}
+.hero .l,.hero .s{color:var(--herolab)}
+.hero .v{font-size:1.875rem;font-weight:600;color:var(--herotx);line-height:1.25}
+.flask{position:absolute;right:.9rem;top:.5rem;width:5rem;text-align:center;color:var(--herotx)}
+.flask svg{display:block;margin:0 auto;width:2.75rem;height:3.4rem}
+.flask small{display:block;font-size:.6875rem;color:var(--herolab);white-space:nowrap}
+.tools>button{height:2rem;padding:0 10px;font-size:.875rem}
+th.pg,td.pg{width:12rem;padding-right:0}
+.bar{height:.625rem;border-radius:.3125rem;background:var(--track);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g1),var(--g2))}
 .warn{color:var(--warn)}
 .evrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
 .evrow input{width:9.5rem;margin-top:0}
@@ -71,89 +82,104 @@ p{margin:6px 0}
 button,th,td,summary,.metric,.evinfo,.tg,.opt,.pbtn span,h1,h2,.tools,label{white-space:nowrap}
 label:not(.opt)>input{display:block}
 </style>
+<script>try{var _s=JSON.parse(localStorage.getItem("auraRechner_v1"));if(_s&&(_s.theme==="dark"||_s.theme==="light"))document.documentElement.setAttribute("data-theme",_s.theme);}catch(e){}</script>
 </head>
 <body>
 <main>
 <header class="top">
-  <h1>Aura-Rechner</h1>
+  <h1 data-i="title">Aura-Rechner</h1>
   <div class="tools">
-    <div class="tg"><span>Schrift</span><button id="fm" type="button" aria-label="Schrift verkleinern">−</button><button id="fr" type="button" class="pc" aria-label="Schriftgröße zurücksetzen">100 %</button><button id="fp" type="button" aria-label="Schrift vergrößern">+</button></div>
+    <button id="lg" type="button" data-ia="lang_a">English</button>
+    <button id="dm" type="button" aria-pressed="false">Darkmode: AUS</button>
+    <div class="tg"><span data-i="font">Schrift</span><button id="fm" type="button" data-ia="fm_a" aria-label="Schrift verkleinern">−</button><button id="fr" type="button" class="pc" data-ia="fr_a" aria-label="Schriftgröße zurücksetzen">100 %</button><button id="fp" type="button" data-ia="fp_a" aria-label="Schrift vergrößern">+</button></div>
   </div>
 </header>
-<p class="sub">Mana-Bedarf und Enddatum bis Aura 400. Alles wird in diesem Browser gespeichert.</p>
+<p class="sub" data-i="sub">Mana-Bedarf und Enddatum bis Aura 400. Alles wird in diesem Browser gespeichert.</p>
 
 <section class="card">
-  <h2>Dein Stand</h2>
+  <h2 data-i="stand">Dein Stand</h2>
   <div class="grid3">
-    <label>Start-Aura<input id="sa" type="number" min="1" max="399" step="1"></label>
-    <label>Mana in dieser Aura schon da<input id="mn" type="number" min="0" step="1"></label>
-    <label>Stand vom (dieser Tag zählt mit)<span class="row"><input id="sd" type="date"><button id="today" type="button">Heute</button></span></label>
+    <label><span data-i="sa_l">Start-Aura</span><input id="sa" type="number" min="1" max="399" step="1"></label>
+    <label><span data-i="mn_l">Mana in dieser Aura schon da</span><input id="mn" type="number" min="0" step="1"></label>
+    <label><span data-i="sd_l">Stand vom (dieser Tag zählt mit)</span><span class="row"><input id="sd" type="date"><button id="today" type="button" data-i="today">Heute</button></span></label>
   </div>
   <p id="err" class="warn small"></p>
   <p id="hint" class="muted small"></p>
 </section>
 
 <details class="card" data-k="mana" open>
-  <summary class="evsum">Mana pro Tag</summary>
+  <summary class="evsum" data-i="s_mana">Mana pro Tag</summary>
   <div class="dbody">
-    <p class="muted small">Nichts ausgewählt rechnet immer mit einem Epic pro Tag.</p>
-    <p class="muted small">Ein erneuter Klick auf den gewählten Knopf setzt die Standardwerte 50 und 200 zurück.</p>
+    <p class="muted small" data-i="i_mana1">Nichts ausgewählt rechnet immer mit einem Epic pro Tag.</p>
+    <p class="muted small" data-i="i_mana2">Ein erneuter Klick auf den gewählten Knopf setzt die Standardwerte 50 und 200 zurück.</p>
     <div class="presets" id="presets"></div>
     <div class="grid3">
-      <label>Mana an normalen Tagen<input id="nm" type="number" min="0" step="1"></label>
-      <label>Mana an Event-Tagen<input id="em" type="number" min="0" step="1"></label>
+      <label><span data-i="nm_l">Mana an normalen Tagen</span><input id="nm" type="number" min="0" step="1"></label>
+      <label><span data-i="em_l">Mana an Event-Tagen</span><input id="em" type="number" min="0" step="1"></label>
     </div>
   </div>
 </details>
 
 <section class="metrics">
-  <div class="metric"><div class="l">Mana bis Aura 400</div><div class="v" id="m1">–</div><div class="s" id="m1s"></div></div>
-  <div class="metric"><div class="l">Gelernter Schnitt</div><div class="v" id="m2">–</div><div class="s" id="m2s"></div></div>
-  <div class="metric"><div class="l">Voraussichtlich fertig</div><div class="v" id="m3">–</div><div class="s" id="m3s"></div></div>
+  <div class="metric hero">
+    <div class="l" data-i="m3_l">Voraussichtlich fertig</div><div class="v" id="m3">–</div><div class="s" id="m3s"></div>
+    <div class="flask" aria-hidden="true">
+      <svg viewBox="0 0 64 80" focusable="false">
+        <defs><clipPath id="flc"><path d="M24 6h16v6l-2 2v14c0 4 2 7 6 11 6 7 9 11 9 19 0 10-8 17-21 17S11 69 11 59c0-8 3-12 9-19 4-4 6-7 6-11V14l-2-2z"/></clipPath></defs>
+        <path d="M24 6h16v6l-2 2v14c0 4 2 7 6 11 6 7 9 11 9 19 0 10-8 17-21 17S11 69 11 59c0-8 3-12 9-19 4-4 6-7 6-11V14l-2-2z" fill="rgba(127,127,127,.18)"/>
+        <g clip-path="url(#flc)"><g id="flw" transform="translate(0,84)"><path d="M0 0 Q16 -5 32 0 T64 0 V90 H0Z" fill="#6cc43a"/><path d="M0 0 Q16 -5 32 0 T64 0" fill="none" stroke="#9be25e" stroke-width="2.5"/></g></g>
+        <path d="M24 6h16v6l-2 2v14c0 4 2 7 6 11 6 7 9 11 9 19 0 10-8 17-21 17S11 69 11 59c0-8 3-12 9-19 4-4 6-7 6-11V14l-2-2z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+        <rect x="22" y="2" width="20" height="6" rx="2" fill="#b08a4a"/>
+      </svg>
+      <small id="flb"></small>
+    </div>
+  </div>
+  <div class="metric"><div class="l" data-i="m1_l">Mana bis Aura 400</div><div class="v" id="m1">–</div><div class="s" id="m1s"></div></div>
+  <div class="metric"><div class="l" data-i="m2_l">Gelernter Schnitt</div><div class="v" id="m2">–</div><div class="s" id="m2s"></div></div>
 </section>
 <p id="learned" class="muted small"></p>
 <p id="change" class="small"></p>
 
-<details class="card" data-k="avg" open>
-  <summary class="evsum">Schnitt berechnen aus</summary>
+<details class="card" data-k="avg2">
+  <summary class="evsum" data-i="s_avg">Schnitt berechnen aus</summary>
   <div class="dbody">
     <div class="row" style="gap:20px;margin-bottom:10px">
-      <label class="opt"><input type="radio" name="win" id="w2025" value="2025">Ab 2025</label>
-      <label class="opt"><input type="radio" name="win" id="w2026" value="2026">Nur 2026</label>
+      <label class="opt"><input type="radio" name="win" id="w2025" value="2025"><span data-i="w25">Ab 2025</span></label>
+      <label class="opt"><input type="radio" name="win" id="w2026" value="2026"><span data-i="w26">Nur 2026</span></label>
     </div>
     <div class="tw"><table id="scen"></table></div>
-    <p class="muted small">Die Auswahl bestimmt die Kennzahlen oben und die Zwischenschritte.</p>
-    <p class="muted small">Beide Zeilen rechnen für die bekannten Tage genau und danach mit ihrem eigenen Schnitt.</p>
+    <p class="muted small" data-i="avg_i1">Die Auswahl bestimmt die Kennzahlen oben und die Zwischenschritte.</p>
+    <p class="muted small" data-i="avg_i2">Beide Zeilen rechnen für die bekannten Tage genau und danach mit ihrem eigenen Schnitt.</p>
   </div>
 </details>
 
 <details class="card" id="evbox" data-k="ev">
-  <summary class="evsum">Events <span id="evcount" class="muted small"></span></summary>
+  <summary class="evsum"><span data-i="s_ev">Events</span> <span id="evcount" class="muted small"></span></summary>
   <div style="margin-top:10px">
-  <p class="muted small">Auch Einzeltage wie Weihnachten.</p>
+  <p class="muted small" data-i="ev_i1">Auch Einzeltage wie Weihnachten.</p>
   <div id="events"></div>
-  <div class="row"><button id="add" type="button">Event hinzufügen</button><button id="sort" type="button">Nach Datum sortieren</button></div>
+  <div class="row"><button id="add" type="button" data-i="add">Event hinzufügen</button><button id="sort" type="button" data-i="sort">Nach Datum sortieren</button></div>
   <details style="margin-top:10px">
-    <summary>Mehrere Zeiträume auf einmal einfügen</summary>
-    <textarea id="paste" rows="3" placeholder="z. B. (16.10-18.10)(30.10-01.11)"></textarea>
-    <div class="row"><button id="pbtn" type="button">Hinzufügen</button><span id="pmsg" class="muted small"></span></div>
-    <p class="muted small">Ohne Jahr wird das Jahr genommen, das am nächsten an deinem Stand-Datum liegt. Für weiter zurückliegende Zeiträume das Jahr dazuschreiben (02.01.2026-04.01.2026). Einzeltage als 25.12-25.12.</p>
+    <summary data-i="s_paste">Mehrere Zeiträume auf einmal einfügen</summary>
+    <textarea id="paste" rows="3" data-ip="ph_paste" placeholder="z. B. (16.10-18.10)(30.10-01.11)"></textarea>
+    <div class="row"><button id="pbtn" type="button" data-i="pbtn">Hinzufügen</button><span id="pmsg" class="muted small"></span></div>
+    <p class="muted small" data-i="paste_i">Ohne Jahr wird das Jahr genommen, das am nächsten an deinem Stand-Datum liegt. Für weiter zurückliegende Zeiträume das Jahr dazuschreiben (02.01.2026-04.01.2026). Einzeltage als 25.12-25.12.</p>
   </details>
-  <p class="muted small">Für die eingetragenen Tage rechnet das Programm genau mit den Werten aus „Mana pro Tag“.</p>
-  <p class="muted small">Danach rechnet es mit dem Schnitt.</p>
+  <p class="muted small" data-i="ev_i2">Für die eingetragenen Tage rechnet das Programm genau mit den Werten aus „Mana pro Tag“.</p>
+  <p class="muted small" data-i="ev_i3">Danach rechnet es mit dem Schnitt.</p>
   <details>
-    <summary>Ende der Vorschau (normalerweise automatisch)</summary>
+    <summary data-i="s_kt">Ende der Vorschau (normalerweise automatisch)</summary>
     <div class="grid3" style="margin-top:8px">
-      <label>Events bekannt bis<input id="kt" type="date"></label>
+      <label><span data-i="kt_l">Events bekannt bis</span><input id="kt" type="date"></label>
     </div>
     <p class="muted small" id="auto"></p>
-    <p class="muted small">Leer lassen = Ende des letzten Events. Mit „bekannt bis“ zählen Tage ohne Event nach deinem letzten Event als normale Tage, zum Beispiel bis zum Ende der Monatsvorschau.</p>
+    <p class="muted small" data-i="kt_i">Leer lassen = Ende des letzten Events. Mit „bekannt bis“ zählen Tage ohne Event nach deinem letzten Event als normale Tage, zum Beispiel bis zum Ende der Monatsvorschau.</p>
   </details>
   </div>
 </details>
 
 <details class="card" data-k="mile" open>
-  <summary class="evsum">Zwischenschritte (mit gewähltem Schnitt)</summary>
+  <summary class="evsum" data-i="s_mile">Zwischenschritte (mit gewähltem Schnitt)</summary>
   <div class="dbody"><div class="tw"><table id="mile"></table></div></div>
 </details>
 
@@ -255,17 +281,125 @@ function applySeed(st){
 
 const KEY='auraRechner_v1';
 const $=id=>document.getElementById(id);
-const nf0=new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
-const nf2=new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+let LANG='de',nf0=null,nf2=null;
+const TX={
+de:{
+  title:'Aura-Rechner',
+  sub:'Mana-Bedarf und Enddatum bis Aura 400. Alles wird in diesem Browser gespeichert.',
+  font:'Schrift',fm_a:'Schrift verkleinern',fr_a:'Schriftgröße zurücksetzen',fp_a:'Schrift vergrößern',
+  lang_a:'Sprache wechseln',langbtn:'English',dm:'Darkmode',on:'AN',off:'AUS',
+  stand:'Dein Stand',sa_l:'Start-Aura',mn_l:'Mana in dieser Aura schon da',sd_l:'Stand vom (dieser Tag zählt mit)',today:'Heute',
+  s_mana:'Mana pro Tag',
+  i_mana1:'Nichts ausgewählt rechnet immer mit einem Epic pro Tag.',
+  i_mana2:'Ein erneuter Klick auf den gewählten Knopf setzt die Standardwerte 50 und 200 zurück.',
+  nm_l:'Mana an normalen Tagen',em_l:'Mana an Event-Tagen',
+  m1_l:'Mana bis Aura 400',m2_l:'Gelernter Schnitt',m3_l:'Voraussichtlich fertig',
+  s_avg:'Schnitt berechnen aus',w25:'Ab 2025',w26:'Nur 2026',
+  avg_i1:'Die Auswahl bestimmt die Kennzahlen oben und die Zwischenschritte.',
+  avg_i2:'Beide Zeilen rechnen für die bekannten Tage genau und danach mit ihrem eigenen Schnitt.',
+  s_ev:'Events',ev_i1:'Auch Einzeltage wie Weihnachten.',add:'Event hinzufügen',sort:'Nach Datum sortieren',
+  s_paste:'Mehrere Zeiträume auf einmal einfügen',ph_paste:'z. B. (16.10-18.10)(30.10-01.11)',pbtn:'Hinzufügen',
+  paste_i:'Ohne Jahr wird das Jahr genommen, das am nächsten an deinem Stand-Datum liegt. Für weiter zurückliegende Zeiträume das Jahr dazuschreiben (02.01.2026-04.01.2026). Einzeltage als 25.12-25.12.',
+  ev_i2:'Für die eingetragenen Tage rechnet das Programm genau mit den Werten aus „Mana pro Tag“.',
+  ev_i3:'Danach rechnet es mit dem Schnitt.',
+  s_kt:'Ende der Vorschau (normalerweise automatisch)',kt_l:'Events bekannt bis',
+  kt_i:'Leer lassen = Ende des letzten Events. Mit „bekannt bis“ zählen Tage ohne Event nach deinem letzten Event als normale Tage, zum Beispiel bis zum Ende der Monatsvorschau.',
+  s_mile:'Zwischenschritte (mit gewähltem Schnitt)',
+  p1n:'Nur Edelsteine',p1d:'30 Mana normal, 120 pro Event-Tag',
+  p2n:'Edelsteine + Event',p2d:'30 Mana normal, 200 pro Event-Tag',
+  p3n:'Nur normale Items',p3d:'25 Mana normal, 100 pro Event-Tag',
+  p4n:'Normale + Epics',p4d:'25 Mana normal, 200 pro Event-Tag',
+  err_sa:'Die Start-Aura muss zwischen 1 und 399 liegen.',
+  err_sd:'Bitte ein Datum für den Stand wählen.',
+  hint_mana:'Das Mana ist höher als die Kosten dieser Aura ({0}). Stimmt die Start-Aura?',
+  evcount:'– {0} Zeiträume, {1} Event-Tage',evcount0:'– noch keine eingetragen',
+  auto_last:'Automatisch: letztes Event endet am {0}',auto_none:'Automatisch: noch keine Events',
+  m1s:'ab Aura {0} mit {1} Mana',m2:'{0} Mana/Tag',
+  m2s:'aus {0} Event-Tagen in {1} Tagen',m2s_est:'Schätzwert, noch keine Events',
+  m3_na:'nicht berechenbar',reached:'schon erreicht',
+  m3s:(w,n)=>w+', '+t('after',n),
+  after:n=>'nach '+(n===1?'1 Tag':nf0.format(n)+' Tagen'),
+  learned:'Gelernt aus {0} Event-Tagen in {1} Tagen ({2} bis {3}) = {4} Mana/Tag.',
+  learned_none:'Im gewählten Zeitraum stehen keine Events. Es gilt ein Schätzwert von {0} Mana/Tag.',
+  foot1:'Aktuell gelten {0} Mana an normalen Tagen und {1} Mana an Event-Tagen.',
+  foot2:'Der gelernte Schnitt beträgt {0} Mana pro Tag.',
+  h_eval:'Auswertung',h_period:'Zeitraum',h_evd:'Event-Tage',h_mpd:'Mana/Tag',h_dur:'Dauer',h_fin:'Fertig am',h_diff:'Unterschied',
+  noev:'keine Events',evin:'{0} in {1} Tagen',dur:n=>nf0.format(n)+' Tage',same:'gleich',
+  diff:(n,early)=>n+(n===1?' Tag ':' Tage ')+(early?'früher':'später'),
+  chg:(n,early,d)=>'Seit deinem letzten Besuch: Enddatum '+TX.de.diff(n,early)+' (vorher '+d+').',
+  h_aura:'Aura',h_mana:'Mana ab Stand',h_date:'Datum',h_prog:'Fortschritt',
+  to:'bis',remove:'Entfernen',start_missing:'Start fehlt',end_before:'Ende vor Start',
+  nd:n=>n+(n===1?' Tag':' Tage'),noevents:'Noch keine Events eingetragen.',
+  padd:(a,dup)=>a+' hinzugefügt'+(dup?', '+dup+' schon vorhanden':''),pnone:'Nichts erkannt. Format: 16.10-18.10',
+  flb:'Aura {0}/400'
+},
+en:{
+  title:'Aura Calculator',
+  sub:'Mana needed and finish date up to Aura 400. Everything is saved in this browser.',
+  font:'Font',fm_a:'Smaller font',fr_a:'Reset font size',fp_a:'Larger font',
+  lang_a:'Switch language',langbtn:'Deutsch',dm:'Dark mode',on:'ON',off:'OFF',
+  stand:'Your status',sa_l:'Start Aura',mn_l:'Mana already in this Aura',sd_l:'Status as of (this day counts)',today:'Today',
+  s_mana:'Mana per day',
+  i_mana1:'If nothing is selected, it always calculates with one Epic per day.',
+  i_mana2:'Clicking the selected button again resets to the default values 50 and 200.',
+  nm_l:'Mana on normal days',em_l:'Mana on event days',
+  m1_l:'Mana to Aura 400',m2_l:'Learned average',m3_l:'Expected finish',
+  s_avg:'Calculate average from',w25:'From 2025',w26:'2026 only',
+  avg_i1:'The selection determines the key figures above and the milestones.',
+  avg_i2:'Both rows calculate the known days exactly and then use their own average.',
+  s_ev:'Events',ev_i1:'Single days such as Christmas also work.',add:'Add event',sort:'Sort by date',
+  s_paste:'Paste several periods at once',ph_paste:'e.g. (16.10-18.10)(30.10-01.11)',pbtn:'Add',
+  paste_i:'Dates are day.month. Without a year, the year closest to your status date is used. For periods further back, add the year (02.01.2026-04.01.2026). Write single days as 25.12-25.12.',
+  ev_i2:'For the entered days the program calculates exactly with the values from "Mana per day".',
+  ev_i3:'After that it uses the average.',
+  s_kt:'End of preview (usually automatic)',kt_l:'Events known until',
+  kt_i:'Leave empty = end of the last event. With "known until", days without an event after your last event count as normal days, for example until the end of the monthly preview.',
+  s_mile:'Milestones (with selected average)',
+  p1n:'Gems only',p1d:'30 mana normal, 120 per event day',
+  p2n:'Gems + Event',p2d:'30 mana normal, 200 per event day',
+  p3n:'Normal items only',p3d:'25 mana normal, 100 per event day',
+  p4n:'Normal + Epics',p4d:'25 mana normal, 200 per event day',
+  err_sa:'Start Aura must be between 1 and 399.',
+  err_sd:'Please choose a date for your status.',
+  hint_mana:'The mana is higher than the cost of this Aura ({0}). Is the start Aura correct?',
+  evcount:'– {0} periods, {1} event days',evcount0:'– none entered yet',
+  auto_last:'Automatic: last event ends on {0}',auto_none:'Automatic: no events yet',
+  m1s:'from Aura {0} with {1} mana',m2:'{0} mana/day',
+  m2s:'from {0} event days in {1} days',m2s_est:'Estimate, no events yet',
+  m3_na:'not calculable',reached:'already reached',
+  m3s:(w,n)=>w+', '+t('after',n),
+  after:n=>'after '+(n===1?'1 day':nf0.format(n)+' days'),
+  learned:'Learned from {0} event days in {1} days ({2} to {3}) = {4} mana/day.',
+  learned_none:'There are no events in the selected period. An estimate of {0} mana/day applies.',
+  foot1:'Currently {0} mana apply on normal days and {1} mana on event days.',
+  foot2:'The learned average is {0} mana per day.',
+  h_eval:'Evaluation',h_period:'Period',h_evd:'Event days',h_mpd:'Mana/day',h_dur:'Duration',h_fin:'Finish date',h_diff:'Difference',
+  noev:'no events',evin:'{0} in {1} days',dur:n=>nf0.format(n)+' days',same:'same',
+  diff:(n,early)=>n+(n===1?' day ':' days ')+(early?'earlier':'later'),
+  chg:(n,early,d)=>'Since your last visit: finish date '+TX.en.diff(n,early)+' (before: '+d+').',
+  h_aura:'Aura',h_mana:'Mana from status',h_date:'Date',h_prog:'Progress',
+  to:'to',remove:'Remove',start_missing:'Start missing',end_before:'End before start',
+  nd:n=>n+(n===1?' day':' days'),noevents:'No events entered yet.',
+  padd:(a,dup)=>a+' added'+(dup?', '+dup+' already there':''),pnone:'Nothing recognized. Format: 16.10-18.10',
+  flb:'Aura {0}/400'
+}};
+function t(k){
+  const a=Array.prototype.slice.call(arguments,1);
+  let v=(TX[LANG]||TX.de)[k];
+  if(v===undefined)v=TX.de[k];
+  if(v===undefined)return k;
+  if(typeof v==='function')return v.apply(null,a);
+  return v.replace(/\{(\d)\}/g,(m,i)=>a[+i]);
+}
+function loc(){return LANG==='de'?'de-DE':'en-US';}
 const ISO=/^\d{4}-\d{2}-\d{2}$/;
 function parseISO(s){const m=ISO.test(s||'')?/^(\d{4})-(\d{2})-(\d{2})$/.exec(s):null;return m?Date.UTC(+m[1],+m[2]-1,+m[3])/DAY:null;}
 function dayToISO(d){return new Date(d*DAY).toISOString().slice(0,10);}
-function fmt(d){return new Date(d*DAY).toLocaleDateString('de-DE',{timeZone:'UTC',weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});}
-function fmtS(d){return new Date(d*DAY).toLocaleDateString('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});}
+function fmtS(d){return new Date(d*DAY).toLocaleDateString(loc(),{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});}
 function todayDay(){const t=new Date();return Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())/DAY;}
 function isoOrEmpty(s){return ISO.test(s||'')?s:'';}
 
-let state={sa:1,mn:0,nm:50,em:200,sec:{},fsz:100,open:[],sig:'',sd:dayToISO(todayDay()),events:[],kt:'',lastEnd:null,seedV:0,evOpen:false,win:'2025'};
+let state={sa:1,mn:0,nm:50,em:200,sec:{},fsz:100,open:[],sig:'',sd:dayToISO(todayDay()),events:[],kt:'',lastEnd:null,seedV:0,evOpen:false,win:'2025',lang:'',theme:''};
 const WIN_START={'2025':Date.UTC(2025,0,1)/DAY,'2026':Date.UTC(2026,0,1)/DAY};
 let baselineEnd=null;
 try{
@@ -283,6 +417,8 @@ try{
     state.fsz=[80,90,100,110,125,150,175,200].includes(+s.fsz)?+s.fsz:100;
     state.open=Array.isArray(s.open)?s.open.map(Number).filter(Number.isFinite):[];
     state.sig=typeof s.sig==='string'?s.sig:'';
+    state.lang=(s.lang==='de'||s.lang==='en')?s.lang:'';
+    state.theme=(s.theme==='dark'||s.theme==='light')?s.theme:'';
     if(Array.isArray(s.events))state.events=s.events.map(e=>({from:isoOrEmpty(e&&e.from),to:isoOrEmpty(e&&e.to)}));
     if(Number.isFinite(+s.lastEnd)&&s.lastEnd!==null)baselineEnd=+s.lastEnd;
     state.lastEnd=baselineEnd;
@@ -291,89 +427,112 @@ try{
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 if(state.seedV<SEED_VERSION){applySeed(state);baselineEnd=null;state.lastEnd=null;save();}
 
+function curLang(){
+  if(state.lang)return state.lang;
+  const n=((navigator.languages&&navigator.languages[0])||navigator.language||'de').toLowerCase();
+  return n.indexOf('de')===0?'de':'en';
+}
+const mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+function effTheme(){return state.theme||((mq&&mq.matches)?'dark':'light');}
+function applyTheme(){
+  const th=effTheme();
+  document.documentElement.setAttribute('data-theme',th);
+  const b=$('dm');b.textContent=t('dm')+': '+(th==='dark'?t('on'):t('off'));
+  b.setAttribute('aria-pressed',th==='dark'?'true':'false');
+}
+if(mq&&mq.addEventListener)mq.addEventListener('change',()=>{if(!state.theme)applyTheme();});
+
+function setFlask(p){
+  p=Math.max(0,Math.min(1,p));
+  $('flw').setAttribute('transform','translate(0,'+(84-62*p).toFixed(2)+')');
+}
+
 function evDays(e){
   const f=parseISO(e.from);if(f===null)return null;
-  const t=e.to?parseISO(e.to):f;
-  if(t===null||t<f)return {bad:true};
-  if(t-f>3650)return {bad:true};
-  return{f,t,n:t-f+1};
+  const tt=e.to?parseISO(e.to):f;
+  if(tt===null||tt<f)return {bad:true};
+  if(tt-f>3650)return {bad:true};
+  return{f,t:tt,n:tt-f+1};
 }
 
 function renderEvents(){
   const box=$('events');box.innerHTML='';
   state.events.forEach((e,i)=>{
     const row=document.createElement('div');row.className='evrow';
-    row.innerHTML='<input type="date" class="ef" value="'+e.from+'"><span>bis</span><input type="date" class="et" value="'+e.to+'"><span class="evinfo"></span><button type="button">Entfernen</button>';
+    row.innerHTML='<input type="date" class="ef" value="'+e.from+'"><span>'+t('to')+'</span><input type="date" class="et" value="'+e.to+'"><span class="evinfo"></span><button type="button">'+t('remove')+'</button>';
     const ef=row.querySelector('.ef'),et=row.querySelector('.et'),info=row.querySelector('.evinfo');
     function upd(){
       const r=evDays(e);
-      if(r===null){info.textContent='Start fehlt';info.className='evinfo';}
-      else if(r.bad){info.textContent='Ende vor Start';info.className='evinfo warn';}
-      else{info.textContent=r.n+(r.n===1?' Tag':' Tage');info.className='evinfo';}
+      if(r===null){info.textContent=t('start_missing');info.className='evinfo';}
+      else if(r.bad){info.textContent=t('end_before');info.className='evinfo warn';}
+      else{info.textContent=t('nd',r.n);info.className='evinfo';}
     }
     ef.addEventListener('input',()=>{
       e.from=ef.value;
-      const f=parseISO(e.from),t=parseISO(e.to);
-      if(f!==null&&(t===null||t<f)){e.to=e.from;et.value=e.to;}
+      const f=parseISO(e.from),tt=parseISO(e.to);
+      if(f!==null&&(tt===null||tt<f)){e.to=e.from;et.value=e.to;}
       upd();save();calc();
     });
     et.addEventListener('input',()=>{e.to=et.value;upd();save();calc();});
     row.querySelector('button').addEventListener('click',()=>{state.events.splice(i,1);renderEvents();save();calc();});
     upd();box.appendChild(row);
   });
-  if(!state.events.length)box.innerHTML='<p class="muted small">Noch keine Events eingetragen.</p>';
+  if(!state.events.length)box.innerHTML='<p class="muted small">'+t('noevents')+'</p>';
 }
 
 function clearOut(){
   ['m1','m2','m3'].forEach(i=>{$(i).textContent='–';$(i+'s').textContent='';});
   $('learned').textContent='';$('change').textContent='';$('scen').innerHTML='';$('mile').innerHTML='';$('foot').innerHTML='';
+  setFlask(0);$('flb').textContent='';
 }
 
 function calc(){
   $('err').textContent='';$('hint').textContent='';
   const sa=Math.floor(+state.sa);
-  if(!(sa>=1&&sa<=TARGET-1)){$('err').textContent='Die Start-Aura muss zwischen 1 und 399 liegen.';clearOut();return;}
+  if(!(sa>=1&&sa<=TARGET-1)){$('err').textContent=t('err_sa');clearOut();return;}
   const mana=Math.max(0,+state.mn||0);
   const nm=Math.max(0,+state.nm||0),em=Math.max(0,+state.em||0);
   const sd=parseISO(state.sd);
-  if(sd===null){$('err').textContent='Bitte ein Datum für den Stand wählen.';clearOut();return;}
-  if(mana>=stepCost(sa))$('hint').textContent='Das Mana ist höher als die Kosten dieser Aura ('+nf0.format(stepCost(sa))+'). Stimmt die Start-Aura?';
+  if(sd===null){$('err').textContent=t('err_sd');clearOut();return;}
+  if(mana>=stepCost(sa))$('hint').textContent=t('hint_mana',nf0.format(stepCost(sa)));
+  const auraF=sa+Math.min(1,mana/stepCost(sa));
+  setFlask((auraF-1)/(TARGET-1));$('flb').textContent=t('flb',sa);
   const events=[];
   for(const e of state.events){const r=evDays(e);if(r&&!r.bad)events.push({f:r.f,t:r.t});}
   const dayset=new Set();for(const e of events)for(let d=e.f;d<=e.t;d++)dayset.add(d);
-  $('evcount').textContent=events.length?'– '+events.length+' Zeiträume, '+dayset.size+' Event-Tage':'– noch keine eingetragen';
+  $('evcount').textContent=events.length?t('evcount',events.length,dayset.size):t('evcount0');
   const base={sa,mana,sd,events,knownTo:parseISO(state.kt),normal:nm,event:em};
   const m25=model(Object.assign({obsFrom:WIN_START['2025']},base));
   const m26=model(Object.assign({obsFrom:WIN_START['2026']},base));
   const m=state.win==='2026'?m26:m25;
 
-  $('auto').textContent=m.maxEv!==null?'Automatisch: letztes Event endet am '+fmtS(m.maxEv):'Automatisch: noch keine Events';
+  $('auto').textContent=m.maxEv!==null?t('auto_last',fmtS(m.maxEv)):t('auto_none');
 
   $('m1').textContent=nf0.format(Math.max(0,m.needTotal));
-  $('m1s').textContent='ab Aura '+sa+' mit '+nf0.format(mana)+' Mana';
-  $('m2').textContent=nf2.format(m.avg)+' Mana/Tag';
-  $('m2s').textContent=m.hasKnown?'aus '+m.eventObs+' Event-Tagen in '+m.obsDays+' Tagen':'Schätzwert, noch keine Events';
+  $('m1s').textContent=t('m1s',sa,nf0.format(mana));
+  $('m2').textContent=t('m2',nf2.format(m.avg));
+  $('m2s').textContent=m.hasKnown?t('m2s',m.eventObs,m.obsDays):t('m2s_est');
   const end=m.endIdx;
-  if(end===null){$('m3').textContent='nicht berechenbar';$('m3s').textContent='';}
-  else if(end<0){$('m3').textContent='schon erreicht';$('m3s').textContent='';}
-  else{$('m3').textContent=fmtS(sd+end);$('m3s').textContent=new Date((sd+end)*DAY).toLocaleDateString('de-DE',{timeZone:'UTC',weekday:'long'})+', nach '+nf0.format(end+1)+' Tagen';}
+  if(end===null){$('m3').textContent=t('m3_na');$('m3s').textContent='';}
+  else if(end<0){$('m3').textContent=t('reached');$('m3s').textContent='';}
+  else{$('m3').textContent=fmtS(sd+end);$('m3s').textContent=t('m3s',new Date((sd+end)*DAY).toLocaleDateString(loc(),{timeZone:'UTC',weekday:'long'}),end+1);}
 
   $('learned').textContent=m.hasKnown
-    ?'Gelernt aus '+m.eventObs+' Event-Tagen in '+m.obsDays+' Tagen ('+fmtS(m.obsFrom)+' bis '+fmtS(m.knownTo)+') = '+nf2.format(m.obsAvg)+' Mana/Tag.'
-    :'Im gewählten Zeitraum stehen keine Events. Es gilt ein Schätzwert von '+nf2.format(m.avg)+' Mana/Tag.';
-  $('foot').innerHTML='<p>Aktuell gelten '+nf0.format(nm)+' Mana an normalen Tagen und '+nf0.format(em)+' Mana an Event-Tagen.</p><p>Der gelernte Schnitt beträgt '+nf2.format(m.avg)+' Mana pro Tag.</p>';
+    ?t('learned',m.eventObs,m.obsDays,fmtS(m.obsFrom),fmtS(m.knownTo),nf2.format(m.obsAvg))
+    :t('learned_none',nf2.format(m.avg));
+  $('foot').innerHTML='<p>'+t('foot1',nf0.format(nm),nf0.format(em))+'</p><p>'+t('foot2',nf2.format(m.avg))+'</p>';
 
-  function endText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?'schon erreicht':fmtS(sd+mm.endIdx));}
-  function durText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?'–':nf0.format(mm.endIdx+1)+' Tage');}
+  function endText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?t('reached'):fmtS(sd+mm.endIdx));}
+  function durText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?'–':t('dur',mm.endIdx+1));}
   function diffText(mm,ref){
     if(mm===ref||mm.endIdx===null||ref.endIdx===null||mm.endIdx<0||ref.endIdx<0)return '';
     const d=mm.endIdx-ref.endIdx;
-    return d===0?'gleich':Math.abs(d)+(Math.abs(d)===1?' Tag ':' Tage ')+(d<0?'früher':'später');
+    return d===0?t('same'):t('diff',Math.abs(d),d<0);
   }
-  let sh='<tr><th>Auswertung</th><th>Zeitraum</th><th>Event-Tage</th><th>Mana/Tag</th><th>Dauer</th><th>Fertig am</th><th>Unterschied</th></tr>';
-  for(const [label,mm] of [['Ab 2025',m25],['Nur 2026',m26]]){
-    const zr=mm.hasKnown?fmtS(mm.obsFrom)+' bis '+fmtS(mm.knownTo):'keine Events';
-    const ev=mm.hasKnown?mm.eventObs+' in '+mm.obsDays+' Tagen':'–';
+  let sh='<tr><th>'+t('h_eval')+'</th><th>'+t('h_period')+'</th><th>'+t('h_evd')+'</th><th>'+t('h_mpd')+'</th><th>'+t('h_dur')+'</th><th>'+t('h_fin')+'</th><th>'+t('h_diff')+'</th></tr>';
+  for(const [label,mm] of [[t('w25'),m25],[t('w26'),m26]]){
+    const zr=mm.hasKnown?fmtS(mm.obsFrom)+(LANG==='de'?' bis ':' – ')+fmtS(mm.knownTo):t('noev');
+    const ev=mm.hasKnown?t('evin',mm.eventObs,mm.obsDays):'–';
     sh+='<tr'+(mm===m?' class="hl"':'')+'><td>'+label+'</td><td>'+zr+'</td><td>'+ev+'</td><td>'+nf2.format(mm.avg)+'</td><td>'+durText(mm)+'</td><td>'+endText(mm)+'</td><td>'+diffText(mm,m)+'</td></tr>';
   }
   $('scen').innerHTML=sh;
@@ -385,26 +544,27 @@ function calc(){
     if(state.sig!==curSig){baselineEnd=endDay;state.sig=curSig;}
     if(baselineEnd!==null&&endDay!==baselineEnd){
       const diff=endDay-baselineEnd;
-      ch.textContent='Seit deinem letzten Besuch: Enddatum '+Math.abs(diff)+(Math.abs(diff)===1?' Tag ':' Tage ')+(diff<0?'früher':'später')+' (vorher '+fmtS(baselineEnd)+').';
+      ch.textContent=t('chg',Math.abs(diff),diff<0,fmtS(baselineEnd));
       ch.style.color=diff<0?'var(--accent)':'var(--warn)';
     }else ch.textContent='';
     if(baselineEnd===null)baselineEnd=endDay;
     state.lastEnd=endDay;save();
   }
 
-  function tageT(n){return n===1?'1 Tag':nf0.format(n)+' Tagen';}
-  function dateCell(idx){return idx===null?'–':(idx<0?'schon erreicht':fmtS(sd+idx)+' (nach '+tageT(idx+1)+')');}
-  let t='<tr><th>Aura</th><th>Mana ab Stand</th><th>Datum</th></tr>';
+  function dateCell(idx){return idx===null?'–':(idx<0?t('reached'):fmtS(sd+idx)+' ('+t('after',idx+1)+')');}
+  function segFill(R){const lo=Math.max(1,R-50);return Math.max(0,Math.min(1,(auraF-lo)/(R-lo)));}
+  let tb='<tr><th>'+t('h_aura')+'</th><th>'+t('h_mana')+'</th><th>'+t('h_date')+'</th><th class="pg">'+t('h_prog')+'</th></tr>';
   const ms=m.milestones;
   for(const r of ms){
     if(r.aura%50!==0)continue;
     const isOpen=openSet.has(r.aura);
-    t+='<tr class="ms" data-a="'+r.aura+'" tabindex="0" role="button" aria-expanded="'+(isOpen?'true':'false')+'"><td>'+(isOpen?'▾ ':'▸ ')+r.aura+'</td><td>'+nf0.format(Math.max(0,r.need))+'</td><td>'+dateCell(r.idx)+'</td></tr>';
+    const f=segFill(r.aura);
+    tb+='<tr class="ms" data-a="'+r.aura+'" tabindex="0" role="button" aria-expanded="'+(isOpen?'true':'false')+'"><td>'+(isOpen?'▾ ':'▸ ')+r.aura+'</td><td>'+nf0.format(Math.max(0,r.need))+'</td><td>'+dateCell(r.idx)+'</td><td class="pg"><div class="bar" title="'+Math.round(f*100)+' %"><i style="width:'+(f*100).toFixed(1)+'%"></i></div></td></tr>';
     for(const s of ms){
-      if(s.aura>r.aura-50&&s.aura<=r.aura)t+='<tr class="sub'+(isOpen?'':' hide')+'" data-p="'+r.aura+'"><td>'+s.aura+'</td><td>'+nf0.format(Math.max(0,s.need))+'</td><td>'+dateCell(s.idx)+'</td></tr>';
+      if(s.aura>r.aura-50&&s.aura<=r.aura)tb+='<tr class="sub'+(isOpen?'':' hide')+'" data-p="'+r.aura+'"><td>'+s.aura+'</td><td>'+nf0.format(Math.max(0,s.need))+'</td><td>'+dateCell(s.idx)+'</td><td class="pg"></td></tr>';
     }
   }
-  $('mile').innerHTML=t;
+  $('mile').innerHTML=tb;
 }
 
 $('sa').value=state.sa;$('mn').value=state.mn;$('sd').value=state.sd;$('kt').value=state.kt;$('nm').value=state.nm;$('em').value=state.em;
@@ -425,7 +585,7 @@ $('pbtn').addEventListener('click',()=>{
   for(const r of list){if(!state.events.some(e=>e.from===r.from&&e.to===r.to)){state.events.push(r);added++;}}
   state.events.sort((a,b)=>(a.from||'9999').localeCompare(b.from||'9999'));
   renderEvents();save();calc();
-  $('pmsg').textContent=list.length?added+' hinzugefügt'+(list.length-added?', '+(list.length-added)+' schon vorhanden':''):'Nichts erkannt. Format: 16.10-18.10';
+  $('pmsg').textContent=list.length?t('padd',added,list.length-added):t('pnone');
   if(list.length)$('paste').value='';
 });
 document.querySelectorAll('details.card[data-k]').forEach(d=>{
@@ -436,10 +596,10 @@ document.querySelectorAll('details.card[data-k]').forEach(d=>{
 const FSZ=[80,90,100,110,125,150,175,200];
 const DEF_NM=50,DEF_EM=200;
 const PRESETS=[
-  {n:'Nur Edelsteine',nm:30,em:120,d:'30 Mana normal, 120 pro Event-Tag'},
-  {n:'Edelsteine + Event',nm:30,em:200,d:'30 Mana normal, 200 pro Event-Tag'},
-  {n:'Nur normale Items',nm:25,em:100,d:'25 Mana normal, 100 pro Event-Tag'},
-  {n:'Normale + Epics',nm:25,em:200,d:'25 Mana normal, 200 pro Event-Tag'}
+  {k:'p1',nm:30,em:120},
+  {k:'p2',nm:30,em:200},
+  {k:'p3',nm:25,em:100},
+  {k:'p4',nm:25,em:200}
 ];
 const openSet=new Set((state.open||[]).map(Number));
 function stepIdx(arr,val,dir){let i=arr.indexOf(val);if(i<0)i=arr.indexOf(100);return Math.max(0,Math.min(arr.length-1,i+dir));}
@@ -458,7 +618,7 @@ function renderPresets(){
   const box=$('presets');box.innerHTML='';
   PRESETS.forEach((p,i)=>{
     const b=document.createElement('button');b.type='button';b.className='pbtn';b.dataset.i=i;
-    b.innerHTML='<b>'+p.n+'</b><span>('+p.d+')</span>';
+    b.innerHTML='<b>'+t(p.k+'n')+'</b><span>('+t(p.k+'d')+')</span>';
     b.addEventListener('click',()=>{
       const on=+state.nm===p.nm&&+state.em===p.em;
       state.nm=on?DEF_NM:p.nm;state.em=on?DEF_EM:p.em;
@@ -487,8 +647,21 @@ $('em').addEventListener('input',()=>{state.em=$('em').value;markPresets();save(
 $('fm').addEventListener('click',()=>{state.fsz=FSZ[stepIdx(FSZ,state.fsz,-1)];applyView();save();});
 $('fp').addEventListener('click',()=>{state.fsz=FSZ[stepIdx(FSZ,state.fsz,1)];applyView();save();});
 $('fr').addEventListener('click',()=>{state.fsz=100;applyView();save();});
-renderPresets();applyView();
-renderEvents();calc();
+
+function applyLang(){
+  LANG=curLang();
+  nf0=new Intl.NumberFormat(loc(),{maximumFractionDigits:0});
+  nf2=new Intl.NumberFormat(loc(),{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.documentElement.lang=LANG;document.title=t('title');
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.dataset.i);});
+  document.querySelectorAll('[data-ia]').forEach(e=>{e.setAttribute('aria-label',t(e.dataset.ia));});
+  document.querySelectorAll('[data-ip]').forEach(e=>{e.setAttribute('placeholder',t(e.dataset.ip));});
+  $('pmsg').textContent='';$('lg').textContent=t('langbtn');
+  applyTheme();renderPresets();renderEvents();calc();
+}
+$('lg').addEventListener('click',()=>{state.lang=LANG==='de'?'en':'de';save();applyLang();});
+$('dm').addEventListener('click',()=>{state.theme=effTheme()==='dark'?'light':'dark';save();applyTheme();});
+applyView();applyLang();
 </script>
 <script data-goatcounter="https://nachbar.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
