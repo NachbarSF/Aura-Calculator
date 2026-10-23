@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- © 2026 Deinnachbar -->
 <html lang="de">
 <head>
 <meta charset="utf-8">
@@ -75,6 +76,21 @@ th.pg,td.pg{width:12rem;padding-right:0}
 .bar{height:.625rem;border-radius:.3125rem;background:var(--track);border:1px solid var(--line);overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g1),var(--g2))}
 .chk{margin-top:10px}
+.bigbtn{height:2.75rem;min-width:16rem;padding:0 22px;font-size:1rem;font-weight:600;background:var(--accent);color:var(--bg);border:0;border-radius:10px;margin:4px 0 12px}
+.bigbtn::before{content:"+";margin-right:8px;font-size:1.25em;font-weight:700}
+.bigbtn:hover{filter:brightness(1.12)}
+.pastbox{margin:6px 0 10px}
+.resrow{margin:10px 0 4px}
+#nextev span{display:block;padding:2px 0}
+.nextbox{margin:10px 0;border:1px solid var(--line);border-left:4px solid var(--accent);background:var(--card2);border-radius:10px;padding:8px 14px;font-size:.9375rem}
+.nextbox:empty{display:none}
+.nextbox span:last-child:not(:first-child){color:var(--muted);font-size:.8125rem}
+.herowrap{display:flex;flex-direction:column;min-width:0}
+.herowrap .hero{flex:1;border-radius:12px 12px 0 0;border-bottom:1px solid var(--herolab)}
+.copybar{width:100%;height:2.5rem;background:var(--herobg);color:var(--herotx);border:2px solid var(--accent);border-top:0;border-radius:0 0 12px 12px;font-weight:600;font-size:.9375rem}
+.copybar:hover{filter:brightness(1.15)}
+.copy{margin-top:18px}
+.copy .dc{display:inline-flex;align-items:center;gap:5px;margin-left:10px;white-space:nowrap}
 .ib{display:inline-flex;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;padding:0;margin-left:8px;border-radius:50%;border:1.5px solid var(--accent);color:var(--accent);font:italic 700 .8125rem/1 Georgia,serif;background:transparent;vertical-align:middle;cursor:pointer}
 .ib[aria-expanded=true]{background:var(--accent);color:var(--bg)}
 .bub{background:var(--hl);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin:0 0 12px;font-size:.84rem;white-space:normal}
@@ -124,6 +140,7 @@ label:not(.opt)>input{display:block}
  .hero{padding-right:6.5rem}
  th.pg,td.pg{width:5rem}
  .card{padding:12px}
+ .bigbtn{width:100%;min-width:0}
  .pbtn.std .pt{flex-wrap:wrap}
 }
 </style>
@@ -168,6 +185,7 @@ label:not(.opt)>input{display:block}
 </details>
 
 <section class="metrics">
+  <div class="herowrap">
   <div class="metric hero" id="hero">
     <div class="l" data-i="m3_l">Voraussichtlich fertig</div><div class="v" id="m3">–</div><div class="s" id="m3s"></div>
     <div class="flask" aria-hidden="true">
@@ -181,10 +199,11 @@ label:not(.opt)>input{display:block}
       <small id="flb"></small>
     </div>
   </div>
+  <button id="copyres" type="button" class="copybar" data-i="copy">Ergebnis kopieren</button>
+  </div>
   <div class="metric"><div class="l" data-i="m1_l">Mana bis Aura 400</div><div class="v" id="m1">–</div><div class="s" id="m1s"></div></div>
   <div class="metric"><div class="l" data-i="m2_l">Gelernter Schnitt</div><div class="v" id="m2">–</div><div class="s" id="m2s"></div></div>
 </section>
-<p id="learned" class="muted small"></p>
 <p id="change" class="small"></p>
 
 <details class="card" data-k="avg2">
@@ -197,6 +216,7 @@ label:not(.opt)>input{display:block}
     </div>
     <div class="tw"><table id="scen"></table></div>
     <p class="muted small" data-i="avg_i1">Die Auswahl bestimmt die Kennzahlen oben und die Zwischenschritte.</p>
+    <p id="learned" class="muted small"></p>
     <p class="muted small" data-i="avg_i2">Beide Zeilen rechnen für die bekannten Tage genau und danach mit ihrem eigenen Schnitt.</p>
   </div>
 </details>
@@ -205,9 +225,12 @@ label:not(.opt)>input{display:block}
   <summary class="evsum"><span data-i="s_ev">Events</span> <span id="evcount" class="muted small"></span><button class="ib" type="button" data-info="inf_ev" aria-expanded="false" data-ia="info_a" aria-label="Info">i</button></summary>
   <div style="margin-top:10px">
   <div class="bub" id="inf_ev" hidden data-i="inf_ev"></div>
+  <div id="nextev" class="nextbox"></div>
+  <div id="foot" class="muted small"></div>
   <p class="muted small" data-i="ev_i1">Auch Einzeltage wie Weihnachten.</p>
+  <button id="add" type="button" class="bigbtn" data-i="add">Event hinzufügen</button>
   <div id="events"></div>
-  <div class="row"><button id="add" type="button" data-i="add">Event hinzufügen</button><button id="sort" type="button" data-i="sort">Nach Datum sortieren</button></div>
+  <details id="evpastbox" class="pastbox"><summary id="evpastsum"></summary><div id="evpast"></div></details>
   <details style="margin-top:10px">
     <summary data-i="s_paste">Mehrere Zeiträume auf einmal einfügen</summary>
     <textarea id="paste" rows="3" data-ip="ph_paste" placeholder="z. B. (16.10-18.10)(30.10-01.11)"></textarea>
@@ -216,14 +239,6 @@ label:not(.opt)>input{display:block}
   </details>
   <p class="muted small" data-i="ev_i2">Für die eingetragenen Tage rechnet das Programm genau mit den Werten aus „Mana pro Tag“.</p>
   <p class="muted small" data-i="ev_i3">Danach rechnet es mit dem Schnitt.</p>
-  <details>
-    <summary data-i="s_kt">Ende der Vorschau (normalerweise automatisch)</summary>
-    <div class="grid3" style="margin-top:8px">
-      <label><span data-i="kt_l">Events bekannt bis</span><input id="kt" type="date"></label>
-    </div>
-    <p class="muted small" id="auto"></p>
-    <p class="muted small" data-i="kt_i">Leer lassen = Ende des letzten Events. Mit „bekannt bis“ zählen Tage ohne Event nach deinem letzten Event als normale Tage, zum Beispiel bis zum Ende der Monatsvorschau.</p>
-  </details>
   </div>
 </details>
 
@@ -233,11 +248,13 @@ label:not(.opt)>input{display:block}
   <div class="bub" id="inf_mile" hidden data-i="inf_mile"></div><div class="tw"><table id="mile"></table></div></div>
 </details>
 
-<div id="foot" class="muted small"></div>
+<p class="muted small copy">© 2026 Deinnachbar <span class="dc" title="Discord: Deinnachbar"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8.5" cy="11" r="1.1" fill="currentColor"/><circle cx="12" cy="11" r="1.1" fill="currentColor"/><circle cx="15.5" cy="11" r="1.1" fill="currentColor"/></svg></span></p>
 </main>
+<canvas id="fw" aria-hidden="true"></canvas>
 <canvas id="fw" aria-hidden="true"></canvas>
 
 <script>
+// © 2026 Deinnachbar
 //CORE-START
 const DAY=86400000,PRIOR_SHARE=(91.17-50)/150,TARGET=400,YEAR=365,MAXDAYS=20000;
 const costTo=new Array(TARGET+1).fill(0);
@@ -336,6 +353,7 @@ let LANG='de',nf0=null,nf2=null;
 const TX={
 de:{
   title:'Aura-Rechner',
+  evpast:'Vergangene Events ({0})',noup:'Keine kommenden Events eingetragen.',evnow:'Läuft gerade: {0}',evnext:(r,n)=>'Nächstes Event: '+r+' ('+(n===1?'morgen':'in '+n+' Tagen')+')',evnone:'Kein kommendes Event eingetragen',evmeta:'Event-Daten: aktualisiert am {0}, bekannt bis {1}',copy:'Ergebnis kopieren',copied:'Kopiert ✓',res:(sa,d,n,nm,em)=>'Aura '+sa+' → 400: voraussichtlich fertig am '+d+' ('+t('after',n)+'). Mana pro Tag: '+nm+' normal, '+em+' an Event-Tagen.',resdone:'Aura 400 erreicht – geschafft!',s_goal:'Wunsch-Datum',gd_l:'Fertig sein bis',goal_none:'Wähle ein Datum, um zu sehen, wie viel Mana pro Tag nötig ist.',goal_ok:(r,a)=>'Du brauchst im Schnitt '+r+' Mana pro Tag. Dein aktueller Schnitt von '+a+' reicht dafür aus.',goal_more:(r,a,x,p)=>'Du brauchst im Schnitt '+r+' Mana pro Tag. Das sind '+x+' mehr als dein aktueller Schnitt von '+a+' (+'+p+' %).',goal_err:'Das Datum muss nach dem Stand liegen.',goal_done:'Du hast Aura 400 schon erreicht.',inf_goal:'Gib ein Datum ein, bis zu dem du fertig sein willst. Das Programm teilt das noch fehlende Mana durch die Tage bis dahin und zeigt, wie viel Mana pro Tag du im Durchschnitt brauchst. Es ist eine Näherung mit dem Durchschnitt, einzelne Event-Tage werden nicht genau gerechnet.',
   p0n:'Nur Epics',p0d:'50 Mana normal, 200 pro Event-Tag (2 Epics)',sel:'ausgewählt',done_l:'Heute schon eingeworfen (die Epics dieses Tages sind im Stand schon enthalten)',info_a:'Info',capped:'Mana wurde auf {0} begrenzt (Füllstand dieser Aura: {1}).',gold_t:'Geschafft!',gold_s:'Aura 400 erreicht – Glückwunsch!',inf_stand:'Trage Start-Aura und Mana so ein, wie sie jetzt in deinem Spiel stehen. Das Datum ist der Tag, für den dieser Stand gilt. Ist der Haken bei „Heute schon eingeworfen“ gesetzt, sind die Epics dieses Tages schon im Mana enthalten und die Rechnung beginnt am nächsten Tag. Ohne Haken wird das Mana des gewählten Tages noch dazugerechnet. Das Mana kann höchstens einen Punkt unter dem Füllstand der Aura liegen, denn beim Füllstand springt die nächste Aura an.',inf_mana:'Wähle deinen Spielstil. Er legt fest, wie viel Mana du an normalen Tagen und an Event-Tagen bekommst. „Nur Epics“ ist die Voreinstellung. An Event-Tagen können zwei Epics eingeworfen werden (200 statt 50 Mana). Klickst du eine gewählte Karte noch einmal an, springt die Auswahl zurück auf „Nur Epics“. Die beiden Felder darunter kannst du auch selbst anpassen.',inf_avg:'Der Schnitt sagt, wie viel Mana du im Durchschnitt pro Tag bekommst. Er wird aus den eingetragenen Events gelernt: „Ab 2025“ nutzt alle Events seit 2025, „Nur 2026“ nur dieses Jahr. Für bekannte Tage rechnet das Programm genau, danach mit dem Schnitt. Die Auswahl bestimmt die Kennzahlen und die Zwischenschritte.',inf_ev:'Hier stehen die Event-Zeiträume (Auraler Großputz). Du kannst Zeiträume ändern, entfernen oder neue eintragen, auch mehrere auf einmal. Je mehr Events bekannt sind, desto genauer wird die Schätzung. Zusätzliche Tage wie Weihnachten trägst du als Einzeltag ein.',inf_mile:'Die Tabelle zeigt, wann du bestimmte Auren erreichst. Ein Klick auf eine Zeile klappt die 10er-Schritte auf. Der Balken rechts zeigt, wie weit du in diesem 50er-Abschnitt schon bist.',
   sub:'Mana-Bedarf und Enddatum bis Aura 400. Alles wird in diesem Browser gespeichert.',
   font:'Schrift',fm_a:'Schrift verkleinern',fr_a:'Schriftgröße zurücksetzen',fp_a:'Schrift vergrößern',
@@ -387,6 +405,7 @@ de:{
 },
 en:{
   title:'Aura Calculator',
+  evpast:'Past events ({0})',noup:'No upcoming events entered.',evnow:'Running now: {0}',evnext:(r,n)=>'Next event: '+r+' ('+(n===1?'tomorrow':'in '+n+' days')+')',evnone:'No upcoming event entered',evmeta:'Event data: updated on {0}, known until {1}',copy:'Copy result',copied:'Copied ✓',res:(sa,d,n,nm,em)=>'Aura '+sa+' → 400: expected finish on '+d+' ('+t('after',n)+'). Mana per day: '+nm+' normal, '+em+' on event days.',resdone:'Aura 400 reached – done!',s_goal:'Target date',gd_l:'Finished by',goal_none:'Choose a date to see how much mana per day you need.',goal_ok:(r,a)=>'You need '+r+' mana per day on average. Your current average of '+a+' is enough.',goal_more:(r,a,x,p)=>'You need '+r+' mana per day on average. That is '+x+' more than your current average of '+a+' (+'+p+' %).',goal_err:'The date must be after the status date.',goal_done:'You have already reached Aura 400.',inf_goal:'Enter a date by which you want to be finished. The program divides the missing mana by the days until then and shows how much mana per day you need on average. This is an approximation using the average; single event days are not calculated exactly.',
   p0n:'Epics only',p0d:'50 mana normal, 200 per event day (2 Epics)',sel:'selected',done_l:'Already thrown in today (today\'s Epics are already included in the status)',info_a:'Info',capped:'Mana was limited to {0} (fill level of this Aura: {1}).',gold_t:'Done!',gold_s:'Aura 400 reached – congratulations!',inf_stand:'Enter start Aura and mana as they are in your game right now. The date is the day this status applies to. If "Already thrown in today" is ticked, that day\'s Epics are already part of your mana and the calculation starts on the next day. Without the tick, the mana of the chosen day is still added. The mana can be at most one below the fill level of the Aura, because at the fill level the next Aura starts.',inf_mana:'Choose your play style. It sets how much mana you get on normal days and on event days. "Epics only" is the default. On event days two Epics can be thrown in (200 instead of 50 mana). Click a selected card again to jump back to "Epics only". You can also adjust the two fields below yourself.',inf_avg:'The average tells how much mana you get per day on average. It is learned from the entered events: "From 2025" uses all events since 2025, "2026 only" just this year. For known days the program calculates exactly, afterwards it uses the average. The selection determines the key figures and the milestones.',inf_ev:'Here are the event periods (Auraler Großputz). You can change, remove or add periods, also several at once. The more events are known, the more accurate the estimate. Add extra days like Christmas as a single day.',inf_mile:'The table shows when you reach certain Auras. Click a row to expand the steps of 10. The bar on the right shows how far you are within this section of 50.',
   sub:'Mana needed and finish date up to Aura 400. Everything is saved in this browser.',
   font:'Font',fm_a:'Smaller font',fr_a:'Reset font size',fp_a:'Larger font',
@@ -438,6 +457,7 @@ en:{
 },
 pl:{
   title:'Kalkulator Aury',
+  evpast:'Minione eventy ({0})',noup:'Brak wpisanych nadchodzących eventów.',evnow:'Trwa teraz: {0}',evnext:(r,n)=>'Następny event: '+r+' ('+(n===1?'jutro':'za '+n+' dni')+')',evnone:'Brak nadchodzącego eventu',evmeta:'Dane eventów: zaktualizowano {0}, znane do {1}',copy:'Kopiuj wynik',copied:'Skopiowano ✓',res:(sa,d,n,nm,em)=>'Aura '+sa+' → 400: przewidywany koniec dnia '+d+' ('+t('after',n)+'). Mana dziennie: '+nm+' zwykle, '+em+' w dni eventu.',resdone:'Aura 400 osiągnięta – gotowe!',s_goal:'Data docelowa',gd_l:'Gotowe do',goal_none:'Wybierz datę, aby zobaczyć, ile many dziennie potrzeba.',goal_ok:(r,a)=>'Potrzebujesz średnio '+r+' many dziennie. Twoja obecna średnia '+a+' wystarcza.',goal_more:(r,a,x,p)=>'Potrzebujesz średnio '+r+' many dziennie. To o '+x+' więcej niż Twoja obecna średnia '+a+' (+'+p+' %).',goal_err:'Data musi być po dniu stanu.',goal_done:'Aura 400 jest już osiągnięta.',inf_goal:'Wpisz datę, do której chcesz skończyć. Program dzieli brakującą manę przez liczbę dni do tej daty i pokazuje, ile many dziennie potrzeba średnio. To przybliżenie na podstawie średniej, pojedyncze dni eventu nie są liczone dokładnie.',
   p0n:'Tylko Epiki',p0d:'50 many zwykle, 200 w dzień eventu (2 Epiki)',sel:'wybrane',done_l:'Dziś już wrzucone (Epiki z tego dnia są już wliczone w stan)',info_a:'Info',capped:'Manę ograniczono do {0} (poziom wypełnienia tej Aury: {1}).',gold_t:'Gotowe!',gold_s:'Aura 400 osiągnięta – gratulacje!',inf_stand:'Wpisz Aurę początkową i manę tak, jak są teraz w grze. Data to dzień, którego dotyczy ten stan. Jeśli zaznaczono „Dziś już wrzucone”, Epiki z tego dnia są już w manie, a obliczenia zaczynają się następnego dnia. Bez zaznaczenia mana wybranego dnia jest jeszcze doliczana. Mana może być co najwyżej o jeden mniejsza niż poziom wypełnienia Aury, bo przy pełnym poziomie zaczyna się następna Aura.',inf_mana:'Wybierz styl gry. Określa, ile many dostajesz w zwykłe dni i w dni eventu. „Tylko Epiki” to ustawienie domyślne. W dni eventu można wrzucić dwa Epiki (200 zamiast 50 many). Ponowne kliknięcie wybranej karty wraca do „Tylko Epiki”. Dwa pola poniżej możesz też zmienić samodzielnie.',inf_avg:'Średnia mówi, ile many dostajesz dziennie. Jest wyuczona z wpisanych eventów: „Od 2025” używa wszystkich eventów od 2025, „Tylko 2026” tylko tego roku. Dla znanych dni program liczy dokładnie, potem według średniej. Wybór określa wartości i etapy pośrednie.',inf_ev:'Tutaj są okresy eventów (Auraler Großputz). Możesz je zmieniać, usuwać lub dodawać, także kilka naraz. Im więcej znanych eventów, tym dokładniejsze szacunki. Dodatkowe dni, np. Boże Narodzenie, wpisz jako pojedynczy dzień.',inf_mile:'Tabela pokazuje, kiedy osiągniesz poszczególne Aury. Kliknięcie wiersza rozwija kroki co 10. Pasek po prawej pokazuje postęp w tym przedziale 50.',
   sub:'Zapotrzebowanie na manę i data zakończenia do Aury 400. Wszystko jest zapisywane w tej przeglądarce.',
   font:'Czcionka',fm_a:'Zmniejsz czcionkę',fr_a:'Resetuj rozmiar czcionki',fp_a:'Powiększ czcionkę',
@@ -489,6 +509,7 @@ pl:{
 },
 cs:{
   title:'Kalkulačka Aury',
+  evpast:'Minulé eventy ({0})',noup:'Nejsou zadány žádné nadcházející eventy.',evnow:'Právě probíhá: {0}',evnext:(r,n)=>'Další event: '+r+' ('+(n===1?'zítra':'za '+n+' '+(n>=2&&n<=4?'dny':'dní'))+')',evnone:'Žádný nadcházející event není zadán',evmeta:'Data eventů: aktualizováno {0}, známo do {1}',copy:'Kopírovat výsledek',copied:'Zkopírováno ✓',res:(sa,d,n,nm,em)=>'Aura '+sa+' → 400: předpokládané dokončení '+d+' ('+t('after',n)+'). Mana za den: '+nm+' běžně, '+em+' ve dnech eventu.',resdone:'Aura 400 dosažena – hotovo!',s_goal:'Cílové datum',gd_l:'Hotovo do',goal_none:'Vyberte datum a uvidíte, kolik many denně potřebujete.',goal_ok:(r,a)=>'Potřebujete průměrně '+r+' many denně. Váš aktuální průměr '+a+' stačí.',goal_more:(r,a,x,p)=>'Potřebujete průměrně '+r+' many denně. To je o '+x+' více než váš aktuální průměr '+a+' (+'+p+' %).',goal_err:'Datum musí být po dni stavu.',goal_done:'Aury 400 jste již dosáhli.',inf_goal:'Zadejte datum, do kterého chcete být hotovi. Program vydělí chybějící manu počtem dnů do tohoto data a ukáže, kolik many denně průměrně potřebujete. Jde o přiblížení pomocí průměru, jednotlivé dny eventů se nepočítají přesně.',
   p0n:'Pouze Epiky',p0d:'50 many běžně, 200 ve dni eventu (2 Epiky)',sel:'vybráno',done_l:'Dnes už vloženo (Epiky tohoto dne jsou již ve stavu zahrnuty)',info_a:'Info',capped:'Mana byla omezena na {0} (úroveň naplnění této Aury: {1}).',gold_t:'Hotovo!',gold_s:'Aura 400 dosažena – gratulujeme!',inf_stand:'Zadejte počáteční Auru a manu tak, jak jsou nyní ve hře. Datum je den, ke kterému stav platí. Je-li zaškrtnuto „Dnes už vloženo“, jsou Epiky tohoto dne již v maně a výpočet začíná následující den. Bez zaškrtnutí se mana zvoleného dne ještě přičte. Mana může být nejvýše o jedna nižší než úroveň naplnění Aury, protože při plné úrovni začíná další Aura.',inf_mana:'Vyberte styl hry. Určuje, kolik many dostanete v běžné dny a ve dnech eventu. „Pouze Epiky“ je výchozí volba. Ve dnech eventu lze vložit dva Epiky (200 místo 50 many). Opětovným kliknutím na vybranou kartu se vrátíte na „Pouze Epiky“. Obě pole níže můžete upravit i sami.',inf_avg:'Průměr říká, kolik many dostanete denně. Učí se ze zadaných eventů: „Od 2025“ používá všechny eventy od roku 2025, „Pouze 2026“ jen letošní rok. Pro známé dny program počítá přesně, poté podle průměru. Výběr určuje hodnoty a mezikroky.',inf_ev:'Zde jsou období eventů (Auraler Großputz). Můžete je měnit, odebírat nebo přidávat, i více najednou. Čím více eventů je známo, tím přesnější odhad. Další dny, např. Vánoce, zadejte jako jednotlivý den.',inf_mile:'Tabulka ukazuje, kdy dosáhnete určitých Aur. Kliknutím na řádek rozbalíte kroky po 10. Pruh vpravo ukazuje, jak daleko jste v tomto úseku po 50.',
   sub:'Potřeba many a datum dokončení do Aury 400. Vše se ukládá v tomto prohlížeči.',
   font:'Písmo',fm_a:'Zmenšit písmo',fr_a:'Obnovit velikost písma',fp_a:'Zvětšit písmo',
@@ -554,6 +575,7 @@ function fmtS(d){return new Date(d*DAY).toLocaleDateString(loc(),{timeZone:'UTC'
 function todayDay(){const t=new Date();return Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())/DAY;}
 function isoOrEmpty(s){return ISO.test(s||'')?s:'';}
 
+const DATA_UPDATED='2026-10-23';
 let state={sa:1,mn:0,nm:50,em:200,sec:{},fsz:100,open:[],sig:'',sd:dayToISO(todayDay()),events:[],kt:'',lastEnd:null,seedV:0,evOpen:false,win:'2025',lang:'',theme:'',done:true};
 const WIN_START={'2025':Date.UTC(2025,0,1)/DAY,'2026':Date.UTC(2026,0,1)/DAY};
 let baselineEnd=null;
@@ -601,7 +623,7 @@ function applyTheme(){
 }
 if(mq&&mq.addEventListener)mq.addEventListener('change',()=>{if(!state.theme)applyTheme();});
 
-let wasDone=false,capNote='';
+let wasDone=false,capNote='',lastResult='';
 const lastAl={};
 function showAlert(id,msg){
   const el=$(id);el.textContent=msg;el.hidden=!msg;
@@ -650,8 +672,16 @@ function evDays(e){
   return{f,t:tt,n:tt-f+1};
 }
 
+let evRend={list:[],grp:[]};
+function evGroup(e){const r=evDays(e);return(r&&!r.bad&&r.t<todayDay())?'past':'up';}
+function sortEvents(){
+  state.events.sort((a,b)=>(a.from||'9999').localeCompare(b.from||'9999'));
+  const same=state.events.length===evRend.list.length&&state.events.every((e,i)=>e===evRend.list[i]&&evGroup(e)===evRend.grp[i]);
+  if(!same){renderEvents();save();}
+}
 function renderEvents(){
-  const box=$('events');box.innerHTML='';
+  const up=$('events'),past=$('evpast');up.innerHTML='';past.innerHTML='';
+  let np=0,nu=0;
   state.events.forEach((e,i)=>{
     const row=document.createElement('div');row.className='evrow';
     row.innerHTML='<input type="date" class="ef" value="'+e.from+'"><span>'+t('to')+'</span><input type="date" class="et" value="'+e.to+'"><span class="evinfo"></span><button type="button">'+t('remove')+'</button>';
@@ -670,15 +700,22 @@ function renderEvents(){
     });
     et.addEventListener('input',()=>{e.to=et.value;upd();save();calc();});
     row.querySelector('button').addEventListener('click',()=>{state.events.splice(i,1);renderEvents();save();calc();});
-    upd();box.appendChild(row);
+    row.addEventListener('focusout',ev=>{
+      if(ev.relatedTarget&&row.contains(ev.relatedTarget))return;
+      setTimeout(()=>{if(document.activeElement&&row.contains(document.activeElement))return;sortEvents();},0);
+    });
+    upd();
+    if(evGroup(e)==='past'){past.appendChild(row);np++;}else{up.appendChild(row);nu++;}
   });
-  if(!state.events.length)box.innerHTML='<p class="muted small">'+t('noevents')+'</p>';
+  if(!nu)up.innerHTML='<p class="muted small">'+t(state.events.length?'noup':'noevents')+'</p>';
+  $('evpastsum').textContent=t('evpast',np);$('evpastbox').hidden=!np;
+  evRend={list:state.events.slice(),grp:state.events.map(evGroup)};
 }
 
 function clearOut(){
   ['m1','m2','m3'].forEach(i=>{$(i).textContent='–';$(i+'s').textContent='';});
   $('learned').textContent='';$('change').textContent='';$('scen').innerHTML='';$('mile').innerHTML='';$('foot').innerHTML='';
-  setFlask(0);$('flb').textContent='';showAlert('hint','');$('hero').classList.remove('gold');wasDone=false;
+  setFlask(0);$('flb').textContent='';showAlert('hint','');$('hero').classList.remove('gold');wasDone=false;lastResult='';$('nextev').innerHTML='';
 }
 
 function calc(){
@@ -702,12 +739,11 @@ function calc(){
   for(const e of state.events){const r=evDays(e);if(r&&!r.bad)events.push({f:r.f,t:r.t});}
   const dayset=new Set();for(const e of events)for(let d=e.f;d<=e.t;d++)dayset.add(d);
   $('evcount').textContent=events.length?t('evcount',events.length,dayset.size):t('evcount0');
-  const base={sa:saM,mana:manaM,sd:sdE,events,knownTo:parseISO(state.kt),normal:nm,event:em};
+  const base={sa:saM,mana:manaM,sd:sdE,events,knownTo:null,normal:nm,event:em};
   const m25=model(Object.assign({obsFrom:WIN_START['2025']},base));
   const m26=model(Object.assign({obsFrom:WIN_START['2026']},base));
   const m=state.win==='2026'?m26:m25;
 
-  $('auto').textContent=m.maxEv!==null?t('auto_last',fmtS(m.maxEv)):t('auto_none');
 
   $('m1').textContent=nf0.format(Math.max(0,m.needTotal));
   $('m1s').textContent=t('m1s',sa,nf0.format(mana));
@@ -718,6 +754,7 @@ function calc(){
   if(isDone){$('m3').textContent='🎆 '+t('gold_t');$('m3s').textContent=t('gold_s');if(sa>=TARGET){$('m1').textContent='0';$('m1s').textContent='';}}
   else if(end===null){$('m3').textContent=t('m3_na');$('m3s').textContent='';}
   else{$('m3').textContent=fmtS(sdE+end);$('m3s').textContent=t('m3s',new Date((sdE+end)*DAY).toLocaleDateString(loc(),{timeZone:'UTC',weekday:'long'}),end+1);}
+  lastResult=isDone?t('resdone'):((end===null)?'':t('res',sa,fmtS(sdE+end),end+1,nf0.format(nm),nf0.format(em)));
   $('hero').classList.toggle('gold',isDone);
   if(isDone&&!wasDone)fireworks();
   wasDone=isDone;
@@ -727,6 +764,19 @@ function calc(){
     :t('learned_none',nf2.format(m.avg));
   $('foot').innerHTML='<p>'+t('foot1',nf0.format(nm),nf0.format(em))+'</p><p>'+t('foot2',nf2.format(m.avg))+'</p>';
 
+  const today=todayDay();
+  let cur=null,nxt=null;
+  for(const e of events){
+    if(e.f<=today&&e.t>=today){if(!cur||e.f<cur.f)cur=e;}
+    else if(e.f>today){if(!nxt||e.f<nxt.f)nxt=e;}
+  }
+  const rng=(f,tt)=>{const o={day:'2-digit',month:'2-digit',timeZone:'UTC'};const a=new Date(f*DAY).toLocaleDateString(loc(),o);return f===tt?a:a+'–'+new Date(tt*DAY).toLocaleDateString(loc(),o);};
+  const nl=[];
+  if(cur)nl.push(t('evnow',rng(cur.f,cur.t)));
+  if(nxt)nl.push(t('evnext',rng(nxt.f,nxt.t),nxt.f-today));
+  if(!cur&&!nxt)nl.push(t('evnone'));
+  nl.push(t('evmeta',fmtS(parseISO(DATA_UPDATED)),m.maxEv!==null?fmtS(m.maxEv):'–'));
+  $('nextev').innerHTML=nl.map(x=>'<span>'+x.replace(/^([^:]+:)/,'<b>$1</b>')+'</span>').join('');
   function endText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?t('reached'):fmtS(sdE+mm.endIdx));}
   function durText(mm){return mm.endIdx===null?'–':(mm.endIdx<0?'–':t('dur',mm.endIdx+1));}
   function diffText(mm,ref){
@@ -773,7 +823,7 @@ function calc(){
   if(sa>=TARGET){$('scen').innerHTML='';$('mile').innerHTML='';}
 }
 
-$('sa').value=state.sa;$('mn').value=state.mn;$('sd').value=state.sd;$('kt').value=state.kt;$('nm').value=state.nm;$('em').value=state.em;
+$('sa').value=state.sa;$('mn').value=state.mn;$('sd').value=state.sd;$('nm').value=state.nm;$('em').value=state.em;
 $('w2025').checked=state.win!=='2026';$('w2026').checked=state.win==='2026';
 $('w2025').addEventListener('change',()=>{if($('w2025').checked){state.win='2025';save();calc();}});
 $('w2026').addEventListener('change',()=>{if($('w2026').checked){state.win='2026';save();calc();}});
@@ -786,13 +836,17 @@ function clampMana(){
   if((+state.mn||0)>max){state.mn=max;$('mn').value=max;capNote=t('capped',nf0.format(max),nf0.format(max+1));save();calc();}
 }
 $('mn').addEventListener('change',clampMana);$('sa').addEventListener('change',clampMana);
+$('copyres').addEventListener('click',()=>{
+  if(!lastResult)return;
+  function done(){const b=$('copyres');b.textContent=t('copied');setTimeout(()=>{b.textContent=t('copy');},2000);}
+  function fallback(){const ta=document.createElement('textarea');ta.value=lastResult;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();done();}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(lastResult).then(done,fallback);}else fallback();
+});
 $('done').checked=state.done;
 $('done').addEventListener('change',()=>{state.done=$('done').checked;save();calc();});
 $('sd').addEventListener('input',()=>{state.sd=$('sd').value;save();calc();});
-$('kt').addEventListener('input',()=>{state.kt=$('kt').value;save();calc();});
 $('today').addEventListener('click',()=>{state.sd=dayToISO(todayDay());$('sd').value=state.sd;save();calc();});
-$('add').addEventListener('click',()=>{state.events.push({from:'',to:''});renderEvents();save();const f=document.querySelectorAll('.ef');if(f.length)f[f.length-1].focus();});
-$('sort').addEventListener('click',()=>{state.events.sort((a,b)=>(a.from||'9999').localeCompare(b.from||'9999'));renderEvents();save();});
+$('add').addEventListener('click',()=>{state.events.push({from:'',to:''});renderEvents();save();const f=document.querySelectorAll('#events .ef');if(f.length)f[f.length-1].focus();});
 $('pbtn').addEventListener('click',()=>{
   const ref=parseISO(state.sd)||todayDay();
   const list=parseRanges($('paste').value,ref);
@@ -873,18 +927,39 @@ function applyLang(){
   document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.dataset.i);});
   document.querySelectorAll('[data-ia]').forEach(e=>{e.setAttribute('aria-label',t(e.dataset.ia));});
   document.querySelectorAll('[data-ip]').forEach(e=>{e.setAttribute('placeholder',t(e.dataset.ip));});
+  $('m2').parentNode.title=t('ev_i2')+' '+t('ev_i3');
   $('pmsg').textContent='';$('lg').value=LANG;
   applyTheme();renderPresets();renderEvents();calc();
 }
 $('lg').addEventListener('change',()=>{state.lang=$('lg').value;save();applyLang();});
 $('dm').addEventListener('click',()=>{state.theme=effTheme()==='dark'?'light':'dark';save();applyTheme();});
+(function(){
+  var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches;
+  document.addEventListener('contextmenu',function(ev){
+    if(coarse)return;
+    var el=ev.target;
+    if(el&&el.closest&&el.closest('input,textarea'))return;
+    ev.preventDefault();
+  });
+  document.addEventListener('keydown',function(ev){
+    var c=ev.ctrlKey||ev.metaKey,cd=ev.code;
+    if(ev.key==='F12'||(c&&ev.shiftKey&&(cd==='KeyI'||cd==='KeyJ'||cd==='KeyC'))||(c&&!ev.shiftKey&&!ev.altKey&&cd==='KeyU')||(ev.metaKey&&ev.altKey&&(cd==='KeyI'||cd==='KeyJ'||cd==='KeyU'||cd==='KeyC')))ev.preventDefault();
+  });
+  try{
+    window['goat'+'counter']={endpoint:atob('aHR0cHM6Ly9uYWNoYmFyLmdvYXRjb3VudGVyLmNvbS9jb3VudA==')};
+    var s=document.createElement('script');s.async=true;s.src=atob('aHR0cHM6Ly9nYy56Z28uYXQvY291bnQuanM=');
+    s.onload=s.onerror=function(){try{s.remove();}catch(e){}};
+    document.head.appendChild(s);
+  }catch(e){}
+})();
 document.querySelectorAll('.ib').forEach(b=>b.addEventListener('click',ev=>{
   ev.preventDefault();ev.stopPropagation();
-  const box=$(b.dataset.info),o=box.hidden;box.hidden=!o;b.setAttribute('aria-expanded',o?'true':'false');
+  const box=$(b.dataset.info),det=b.closest('summary')&&b.closest('summary').parentNode;
+  if(det&&det.tagName==='DETAILS'&&!det.open){det.open=true;box.hidden=false;b.setAttribute('aria-expanded','true');return;}
+  const o=box.hidden;box.hidden=!o;b.setAttribute('aria-expanded',o?'true':'false');
 }));
 $('hero').addEventListener('click',()=>{if($('hero').classList.contains('gold'))fireworks();});
 applyView();applyLang();
 </script>
-<script data-goatcounter="https://nachbar.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
